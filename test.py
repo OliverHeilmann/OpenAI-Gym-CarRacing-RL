@@ -1,4 +1,5 @@
 # Try to play by yourself!
+
 import gym
 from pyglet.window import key
 import numpy as np
@@ -6,29 +7,31 @@ import time
 
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
-a = np.array( [0.0, 0.0, 0.0] )  # Actions
+a = np.array([0.0, 0.0, 0.0])  # Actions
+restart = False
 
 def key_press(k, mod):
     global bool_do_not_quit, a, restart
-    if k==0xff0d: restart = True
-    if k==key.ESCAPE: bool_do_not_quit=False  # To Quit
-    if k==key.Q: bool_do_not_quit=False  # To Quit
-    if k==key.LEFT:  a[0] = -1.0
-    if k==key.RIGHT: a[0] = +1.0
-    if k==key.UP:    a[1] = +1.0
-    if k==key.DOWN:  a[2] = +0.8   # set 1.0 for wheels to block to zero rotation
+
+    if k == 0xff0d: restart = True
+    if k == key.ESCAPE: bool_do_not_quit = False  # To Quit
+    if k == key.Q: bool_do_not_quit = False  # To Quit
+    if k == key.LEFT:  a[0] = -1.0
+    if k == key.RIGHT: a[0] = +1.0
+    if k == key.UP:    a[1] = +1.0
+    if k == key.DOWN:  a[2] = +0.8   # set 1.0 for wheels to block to zero rotation
 
 def key_release(k, mod):
     global a
-    if k==key.LEFT  and a[0]==-1.0: a[0] = 0
-    if k==key.RIGHT and a[0]==+1.0: a[0] = 0
-    if k==key.UP:    a[1] = 0
-    if k==key.DOWN:  a[2] = 0
+    if k == key.LEFT and a[0] == -1.0: a[0] = 0
+    if k == key.RIGHT and a[0] == 1.0: a[0] = 0
+    if k == key.UP:    a[1] = 0
+    if k == key.DOWN:  a[2] = 0
 
 def run_carRacing_asHuman(policy=None, record_video=False):
     global bool_do_not_quit, a, restart
     # env = CarRacing()
-    env = gym.make('CarRacing-v0').env
+    env = gym.make('CarRacing-v1').env
 
     env.reset()
     env.render()
@@ -56,11 +59,11 @@ def run_carRacing_asHuman(policy=None, record_video=False):
                 t1 = time.time()-t1
                 scores.append(total_reward)
                 scores.append(total_reward)
-                print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs."% t1)
+                print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs." % t1)
                 break
         if not bool_do_not_quit:
             scores.append(total_reward)
-            print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs."% t1)
+            print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs." % t1)
     env.close()
 
 run_carRacing_asHuman()  # Run with human keyboard input
