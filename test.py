@@ -6,7 +6,7 @@ import time
 
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
-a = np.array( [0.0, 0.0, 0.0] )  # Actions joe
+a = np.array( [0.0, 0.0, 0.0] )  # Actions
 
 def key_press(k, mod):
     global bool_do_not_quit, a, restart
