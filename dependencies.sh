@@ -4,3 +4,4 @@
 conda install -c conda-forge gym
 conda install -c conda-forge pyglet
 conda install -c cogsci pygame
+conda install -c conda-forge box2d-py
