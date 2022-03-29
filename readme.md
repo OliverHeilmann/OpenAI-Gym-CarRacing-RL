@@ -3,7 +3,7 @@ WIP
 
 # Contributors
 1) Oliver Heilmann: __contact details__
-2) ...
+2) Sam Barba: sb3193@bath.ac.uk
 3) ..
 
 # Notes
