@@ -1,0 +1,7 @@
+__*
+.ipynb*
+.DS_Store
+.vscode
+build
+dep
+*.json
