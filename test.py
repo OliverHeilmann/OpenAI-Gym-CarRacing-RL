@@ -31,7 +31,7 @@ def key_release(k, mod):
 def run_carRacing_asHuman(policy=None, record_video=False):
     global bool_do_not_quit, a, restart
     # env = CarRacing()
-    env = gym.make('CarRacing-v1').env
+    env = gym.make('CarRacing-v0').env
 
     env.reset()
     env.render()
