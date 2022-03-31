@@ -7,4 +7,4 @@ WIP
 3) Isaac Anako: iaa57@bath.ac.uk
 
 # Notes
-1) To select interpreter --> cmd+shift+p, Python. Select Interpreter, CHOOSE PREFERENCE
+1) To select interpreter in VS Code--> cmd+shift+p, Python. Select Interpreter, CHOOSE PREFERENCE

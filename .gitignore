@@ -5,3 +5,4 @@ __*
 build
 dep
 *.json
+*.pyc
