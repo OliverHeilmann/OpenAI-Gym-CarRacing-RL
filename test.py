@@ -1,8 +1,9 @@
 # Try to play by yourself!
-import gym
+from env_mod.car_racing_mod import CarRacing
 from pyglet.window import key
 import numpy as np
 import time
+import cv2
 
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
@@ -27,8 +28,8 @@ def key_release(k, mod):
 
 def run_carRacing_asHuman(policy=None, record_video=False):
     global bool_do_not_quit, a, restart
-    # env = CarRacing()
-    env = gym.make('CarRacing-v0').env
+    env = CarRacing()
+    # env = gym.make('CarRacing-v0').env
 
     env.reset()
     env.render()
@@ -45,6 +46,10 @@ def run_carRacing_asHuman(policy=None, record_video=False):
         t1 = time.time()  # Trial timer
         while bool_do_not_quit:
             state, reward, done, info = env.step(a)
+            
+            # show state (as is represented in the environment)
+            cv2.imshow("State", state)
+
             # time.sleep(1/10)  # Slow down to 10fps for us poor little human!
             total_reward += reward
             if steps % 200 == 0 or done:
@@ -62,5 +67,6 @@ def run_carRacing_asHuman(policy=None, record_video=False):
             scores.append(total_reward)
             print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs."% t1)
     env.close()
+    cv2.destroyAllWindows() 
 
 run_carRacing_asHuman()  # Run with human keyboard input
