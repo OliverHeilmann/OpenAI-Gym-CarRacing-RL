@@ -10,3 +10,4 @@ pip install box2d-py
 pip install opencv-python
 pip install tensorflow
 pip install screen
+pip install PyOpenGL
