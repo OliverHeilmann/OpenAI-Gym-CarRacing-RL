@@ -1,6 +1,11 @@
 # Code Description
 WIP
 
+# Server Docker Image
+```text
+hare run oah33/docker_rl
+```
+
 # Contributors
 1) Oliver Heilmann: oah33@bath.ac.uk
 2) Sam Barba: sb3193@bath.ac.uk
