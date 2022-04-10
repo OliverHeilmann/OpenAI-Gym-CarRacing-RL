@@ -1,4 +1,7 @@
 import gym
+#from env_mod.car_racing_mod import CarRacing
+#from gym import wrappers
+
 import numpy as np
 import cv2
 from keras import Model, Input
@@ -87,6 +90,9 @@ def image_processing(state):
 
 def train_agent(episodes):
     env = gym.make('CarRacing-v0').env
+    #env =  CarRacing()
+    #env = wrappers.Monitor(env, '/homes/oah33/Reinforcement-Learning-G69', video_callable=False ,force=True)
+
     for episodeNum in range(episodes):
         print("episode:",episodeNum)
         env.reset()  

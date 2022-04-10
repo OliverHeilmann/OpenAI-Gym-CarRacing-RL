@@ -1,7 +1,8 @@
 imageio
 opencv-python
-gym
 pyglet
+gym
+Box2D
 pygame
-box2d-py
 PyOpenGL
+xvfbwrapper
