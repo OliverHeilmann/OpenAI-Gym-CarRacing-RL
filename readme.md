@@ -3,8 +3,14 @@ WIP
 
 # Server Docker Image
 ```text
-hare run oah33/docker_rl
+hare run --rm -v "$(pwd)":/<file dir> <docker image> python3 /<file dir>/<filename>.py
 ```
+
+e.g. 
+```text
+hare run --rm -v "$(pwd)":/code oah33/docker_rl python3 /code/DQN.py
+```
+
 
 # Contributors
 1) Oliver Heilmann: oah33@bath.ac.uk
