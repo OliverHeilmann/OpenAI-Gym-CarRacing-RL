@@ -41,7 +41,7 @@ hare build -t oah33/docker_rl .
 Run the Docker container and pass back the relevant information to the server/ host.
 ```text
 <!-- run docker container with python script -->
-hare run -p 10000:80 --rm -v "$(pwd)":/code oah33/docker_rl python3 /code/DQN.py
+hare run -p 10000:80 --gpus device=0 --rm -v "$(pwd)":/code oah33/docker_rl python3 /code/DQN.py
 ```
 A lot to unpack in this command, lets break it down:
 * ```hare run```: Use docker to run the following inside a virtual machine.
