@@ -2,6 +2,8 @@
 # --> conda activate <the environment you want to use e.g. base>
 # --> sh dependencies.sh
 
+# MUST BE PYTHON 3.8.10 TO BE COMPATIBLE WITH SERVERS!
+conda install -y -c conda-forge pyvirtualdisplay
 conda install -y -c conda-forge tensorflow
 conda install -y -c conda-forge keras
 conda install -y -c conda-forge opencv
