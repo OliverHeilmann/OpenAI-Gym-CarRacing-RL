@@ -46,6 +46,7 @@ hare run -p 10000:80 --gpus device=0 --rm -v "$(pwd)":/code oah33/docker_rl pyth
 A lot to unpack in this command, lets break it down:
 * ```hare run```: Use docker to run the following inside a virtual machine.
 * ```-p 10000:80```: Connect the Docker container port 80 to server host port 10000.
+* ```--gpus device=0```: Access GPU number 0 specifically (see Hex for more info on GPU selection).
 * ```--rm```: Clean up after the container finishes.
 * ```-v "$(pwd)":/app - $(pwd)```: $(pwd) is the directory you are currently in (pwd = print working directory), so it is mounting your current directory in the folder /app inside the container.
 * ```python``` - The image to use. python is a pretty basic one (just Python!), so you will generally want one with more libraries.
