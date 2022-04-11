@@ -6,3 +6,4 @@ build
 dep
 *.json
 *.pyc
+logs

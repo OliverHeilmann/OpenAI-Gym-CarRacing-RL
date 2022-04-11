@@ -1,4 +1,6 @@
-import gym
+# import gym
+from env_mod.car_racing_mod import CarRacing
+
 import numpy as np
 import cv2
 from keras import Model, Input
@@ -9,12 +11,17 @@ from tensorflow.keras.optimizers import Adam
 import random
 from scipy import stats
 import tensorflow as tf
+import datetime
 from tensorflow.keras import datasets, layers, models
 
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
 a = np.array( [0.0, 0.0, 0.0] )  # Actions
 prev_err = 0 
+
+# Setup TensorBoard model
+log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 class dnq_agent:
     def __init__(self,epsilon,n):
@@ -66,7 +73,7 @@ class dnq_agent:
             action_vals = self.model.predict(state)[0]
             action_vals[action] = y
             action_vals = np.expand_dims(action_vals , axis=0)
-            self.model.fit(state,action_vals,epochs=1,verbose=0)
+            self.model.fit(state,action_vals,epochs=1,verbose=0, callbacks=[tensorboard_callback])  # note TensorBoard callback!
 
 
 def image_processing(state):
@@ -86,7 +93,9 @@ def image_processing(state):
     return canny[0]
 
 def train_agent(episodes):
-    env = gym.make('CarRacing-v0').env
+    # env = gym.make('CarRacing-v0').env
+    env =  CarRacing()
+
     for episodeNum in range(episodes):
         print("episode:",episodeNum)
         env.reset()  
