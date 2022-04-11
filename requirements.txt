@@ -1,4 +1,3 @@
-imageio
 opencv-python
 pyglet
 gym
@@ -6,3 +5,7 @@ Box2D
 pygame
 PyOpenGL
 xvfbwrapper
+PyVirtualDisplay
+pillow
+EasyProcess
+scipy
