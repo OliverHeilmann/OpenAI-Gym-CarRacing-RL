@@ -374,7 +374,7 @@ class CarRacing(gym.Env, EzPickle):
         self.world.Step(1.0 / FPS, 6 * 30, 2 * 30)
         self.t += 1.0 / FPS
 
-        self.state = self.render("state_pixels")
+        #self.state = self.render("state_pixels")
 
         step_reward = 0
         done = False
