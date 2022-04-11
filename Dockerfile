@@ -20,9 +20,3 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
 # Env vars for the nvidia-container-runtime.
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
-
-# Stop display with gym. 
-RUN echo "export DISPLAY=:0"  >> /etc/profile
-
-# Add gym.
-RUN pip install --upgrade pip && pip install gym==0.17.2 box2d==2.3.10

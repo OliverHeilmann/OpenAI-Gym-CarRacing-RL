@@ -1,11 +1,6 @@
-<<<<<<< HEAD
-# import gym
-from env_mod.car_racing_mod import CarRacing
-=======
 import gym
 #from env_mod.car_racing_mod import CarRacing
 #from gym import wrappers
->>>>>>> 8217c750c4b5669dfd07cf632294bf61246c963a
 
 import numpy as np
 import cv2
@@ -99,14 +94,9 @@ def image_processing(state):
     return canny[0]
 
 def train_agent(episodes):
-<<<<<<< HEAD
-    # env = gym.make('CarRacing-v0').env
-    env =  CarRacing()
-=======
     env = gym.make('CarRacing-v0').env
     #env =  CarRacing()
     #env = wrappers.Monitor(env, '/homes/oah33/Reinforcement-Learning-G69', video_callable=False ,force=True)
->>>>>>> 8217c750c4b5669dfd07cf632294bf61246c963a
 
     for episodeNum in range(episodes):
         print("episode:",episodeNum)
@@ -131,7 +121,7 @@ def train_agent(episodes):
             action_idx = agent.make_move(procesed_image)
             action = agent.possible_actions[action_idx]     
     env.close()
-
+    
 agent = dnq_agent(epsilon=0.2,n=20)
 print("here",agent.possible_actions[0])
 print(agent.number_of_actions)
