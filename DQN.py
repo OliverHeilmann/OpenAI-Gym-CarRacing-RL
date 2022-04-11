@@ -1,5 +1,8 @@
+# To access Tensorboard in VS Code:
+#       CTRL+Shift+p : Python: Launch Tensorboard
+
 import gym
-#from env_mod.car_racing_mod import CarRacing
+# from env_mod.car_racing_mod import CarRacing
 #from gym import wrappers
 
 import numpy as np
@@ -13,7 +16,9 @@ import random
 from scipy import stats
 import tensorflow as tf
 import datetime
+import os
 from tensorflow.keras import datasets, layers, models
+# import pyvirtualdisplay
 
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
@@ -23,6 +28,9 @@ prev_err = 0
 # Setup TensorBoard model
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+# Creates a virtual display for OpenAI gym
+# pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
 
 class dnq_agent:
     def __init__(self,epsilon,n):
@@ -95,7 +103,7 @@ def image_processing(state):
 
 def train_agent(episodes):
     env = gym.make('CarRacing-v0').env
-    #env =  CarRacing()
+    # env =  CarRacing()
     #env = wrappers.Monitor(env, '/homes/oah33/Reinforcement-Learning-G69', video_callable=False ,force=True)
 
     for episodeNum in range(episodes):
