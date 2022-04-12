@@ -72,6 +72,16 @@ tensorboard --logdir logs/fit --port=10000
 hare run -p 10000:80 --rm -v "$(pwd)":/code oah33/docker_rl jupyter notebook --allow-root --no-browser --port=80 --ip=0.0.0.0
 
 tensorboard --logdir logs/fit --port 6006
+
+hare me
+
+hare attach <container name>
+
+hare exec <container name> tensorboard --logdir logs/fit --port=80 --host=0.0.0.0
+
+hare run -p 10000:80 --gpus device=0 --rm -v "$(pwd)":/code oah33/docker_rl
+hare exec agitated_elion python3 /code/tensorboard_test.py
+
 ```
 
 # Contributors
