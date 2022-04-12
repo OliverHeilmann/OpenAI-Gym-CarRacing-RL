@@ -21,10 +21,14 @@ RUN apt-get update && apt-get install -y -qq --no-install-recommends \
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
 
-EXPOSE 80
+#EXPOSE 80
 
 # Fix GUI env issues
 RUN echo "export DISPLAY =: 0" >>/etc/profile
 
+# Run main cmds inside shell script
+#ADD bootstrap.sh /code/bootstrap.sh
+ENTRYPOINT sh boot.sh
+
 # Start tensorboard on port 80
-CMD ["tensorboard", "--logdir", "logs/fit", "--port=80", "--host=0.0.0.0"]
+#CMD ["tensorboard", "--logdir", "logs/fit", "--port=80", "--host=0.0.0.0"]

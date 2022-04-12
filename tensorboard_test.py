@@ -2,8 +2,6 @@ import tensorflow as tf
 import datetime
 import os
 
-os.system("rm -rf logs")
-
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train),(x_test, y_test) = mnist.load_data()
@@ -28,6 +26,7 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 
 model.fit(x=x_train, 
           y=y_train, 
-          epochs=5, 
+          epochs=50, 
           validation_data=(x_test, y_test), 
           callbacks=[tensorboard_callback])
+
