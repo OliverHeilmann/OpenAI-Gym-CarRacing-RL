@@ -18,7 +18,7 @@ import tensorflow as tf
 import datetime
 import os
 from tensorflow.keras import datasets, layers, models
-# import pyvirtualdisplay
+import pyvirtualdisplay
 
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
@@ -30,7 +30,7 @@ log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 # Creates a virtual display for OpenAI gym
-# pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
+pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
 
 class dnq_agent:
     def __init__(self,epsilon,n):
@@ -53,7 +53,7 @@ class dnq_agent:
         dense2 = tf.keras.layers.Dense(32,activation='relu')(dense1)
         output_layer = tf.keras.layers.Dense(self.number_of_actions,activation='relu')(dense2)
         self.model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
-        self.model.compile(loss='MSE', optimizer='adam')
+        self.model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
 
     def make_move(self,state):
         state = np.expand_dims(state, axis=0)
