@@ -1,5 +1,5 @@
 # Try to play by yourself!
-from env_mod.car_racing_mod import CarRacing
+from car_racing_mod import CarRacing
 from pyglet.window import key
 import numpy as np
 import time

@@ -1,7 +1,13 @@
 # Code Description
 WIP
 
-# Server Stuff
+# Building Conda Env on Local Machine
+A shell script has been created to help with building your anaconda environment. Simply run the command below in terminal (which supports anaconda). Note: pass the name of your environment as a parameter.
+```shell
+source build_conda_env.sh <YOUR ENV NAME>
+```
+
+# Server Setup
 
 ## In Code (the model to train)
 Open AI Gym uses pyglet which requires a screen/ monitor to function. The servers don't have said screens so we make virtual ones within our code to spoof the code into thinking we do. See below:
