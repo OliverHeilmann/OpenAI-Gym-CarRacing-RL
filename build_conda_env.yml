@@ -1,0 +1,20 @@
+# Run:
+#   conda env create --file build_conda_env.yml
+
+name: SERVER_ENV
+channels:
+  - conda-forge
+  - cogsci
+dependencies:
+  - python=3.8.10
+  - pyvirtualdisplay=3.0
+  - tensorflow=2.4.1
+  - keras=2.4.3
+  - opencv=4.5.1
+  - gym=0.21.0
+  - pyglet=1.5.16
+  - box2d-py=2.3.8
+  - pip=21.2.4
+  - matplotlib=3.5.1
+  - pip:
+    - pygame

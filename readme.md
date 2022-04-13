@@ -2,9 +2,9 @@
 WIP
 
 # Building Conda Env on Local Machine
-A shell script has been created to help with building your anaconda environment. Simply run the command below in terminal (which supports anaconda). Note: pass the name of your environment as a parameter.
+A yml script has been created to help with building your anaconda environment. Simply run the command below in terminal (which supports anaconda). Environment name can be changed from SERVER_ENV to user choice inside yml file.
 ```shell
-source build_conda_env.sh <YOUR ENV NAME>
+conda env create --file build_conda_env.yml
 ```
 
 # Server Setup

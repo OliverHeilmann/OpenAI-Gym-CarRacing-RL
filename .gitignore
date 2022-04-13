@@ -7,3 +7,4 @@ dep
 *.json
 *.pyc
 logs
+dep
