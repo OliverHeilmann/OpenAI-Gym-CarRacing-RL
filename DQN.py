@@ -20,6 +20,14 @@ import os
 from tensorflow.keras import datasets, layers, models
 import pyvirtualdisplay
 
+# Prevent tensorflow from allocating the all of GPU memory
+# From: https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)   # set memory growth option
+    # tf.config.set_logical_device_configuration( gpu, [tf.config.LogicalDeviceConfiguration(memory_limit=3000)] )    # set memory limit to 3 GB
+
+
 bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
 a = np.array( [0.0, 0.0, 0.0] )  # Actions
