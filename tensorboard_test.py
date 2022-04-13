@@ -2,6 +2,11 @@ import tensorflow as tf
 import datetime
 import os
 
+# Prevent tensorflow from allocating the all of GPU memory
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+  tf.config.experimental.set_memory_growth(gpu, True)
+
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train),(x_test, y_test) = mnist.load_data()
