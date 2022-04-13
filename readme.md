@@ -10,7 +10,6 @@ conda env create --file build_conda_env.yml
 # Server Setup
 
 ## In Code (the model to train)
-
 Tensorflow, by default, hogs/ allocates all the GPU memory. This is *NOT* good as this often leads to *Out of Memory* errors during training. In order to prevent this, add the following lines of code at the *TOP* of your script. Essentially, this will enforce that Tensorflow only allocates as much memory as is needed at that given time.
 ```python
 # Prevent tensorflow from allocating the all of GPU memory
@@ -20,12 +19,36 @@ for gpu in gpus:
 ```
 
 Open AI Gym uses pyglet which requires a screen/ monitor to function. The servers don't have said screens so we make virtual ones within our code to spoof the code into thinking we do. See below:
-
 ```python
 import pyvirtualdisplay
 
 # Creates a virtual display for OpenAI gym
 pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
+```
+
+While training our model, it is good practice to save it periodically so that training can be continued if the process is interrupted before completion. Add these lines and modify the arguments as necessary.
+```python
+# Where are models saved? How frequently e.g. every x1 episode?
+USERNAME                = "oah33"
+MODEL_TYPE              = "DQN"
+TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+SAVE_TRAINING_FREQUENCY = 1
+model_dir = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
+
+...
+
+    # should have this function in the Agent Class
+    def save(self, name):
+        """Save model to appropriate dir, defined at start of code."""
+        if not os.path.exists(model_dir):
+             os.makedirs(model_dir)
+        self.model.save_weights(model_dir + name)
+
+...
+
+    # Put this in the training loop
+    if episodeNum % SAVE_TRAINING_FREQUENCY == 0:
+        agent.save(f"episode_{episodeNum}.h5")
 ```
 
 To use Tensorboard, we need to create the appropriate **logs/fit** event data in the expected format. Add the first two lines at the top of your code and then add the callbacks line into the model.fit function.
@@ -38,6 +61,8 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram
 
 self.model.fit(state,action_vals,epochs=1,verbose=0, callbacks=[tensorboard_callback])  # note TensorBoard callback!
 ```
+
+*NOTE: For examples of the implementation, look at the [DQN.py](DQN.py) and [tensorboard_test.py](tensorboard_test.py)*
 
 ## In Terminal (Connecting to Server)
 Login to the servers using your own credentials. If at any point you need help, go to [HEX](https://hex.cs.bath.ac.uk/) for support, it's a great source!
