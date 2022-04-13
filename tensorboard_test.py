@@ -7,7 +7,7 @@ import os
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
     # tf.config.experimental.set_memory_growth(gpu, True)   # set memory growth option
-    tf.config.set_logical_device_configuration( gpu, [tf.config.LogicalDeviceConfiguration(memory_limit=3000)] )
+    tf.config.set_logical_device_configuration( gpu, [tf.config.LogicalDeviceConfiguration(memory_limit=3000)] )    # set memory limit to 3 GB
 
 
 mnist = tf.keras.datasets.mnist
