@@ -8,3 +8,6 @@ dep
 *.pyc
 logs
 dep
+*.xml
+*.iml
+*.idea/
