@@ -46,14 +46,16 @@ model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+# Get Hardware list
+hardware = tf.config.list_physical_devices(device_type=None)
 
-model.fit(x=x_train, 
-          y=y_train, 
-          epochs=1, 
-          validation_data=(x_test, y_test), 
-          callbacks=[tensorboard_callback])
+# Assign GPU/ CPU
+with tf.device('/GPU:0'):
+    model.fit(x=x_train, 
+            y=y_train, 
+            epochs=50,
+            validation_data=(x_test, y_test), 
+            callbacks=[tensorboard_callback])
 
 # Save model to appropriate dir, defined at start of code.
 if not os.path.exists(model_dir):
