@@ -54,6 +54,7 @@ def create_model():
 # Get Hardware list
 hardware = tf.config.list_physical_devices(device_type=None)
 
+"""
 # CPU
 with tf.device('/CPU:0'):
     model = create_model()
@@ -64,6 +65,7 @@ with tf.device('/CPU:0'):
             batch_size=4352,    # num RTX 2080 CUDA cores
             validation_data=(x_test, y_test), 
             callbacks=[tensorboard_callback])
+"""
 
 # Assign GPU
 with tf.device('/GPU:0'):
@@ -71,7 +73,7 @@ with tf.device('/GPU:0'):
     
     model.fit(x=x_train, 
             y=y_train, 
-            epochs=5,
+            epochs=50,
             batch_size=4352,    # num RTX 2080 CUDA cores
             validation_data=(x_test, y_test), 
             callbacks=[tensorboard_callback])
