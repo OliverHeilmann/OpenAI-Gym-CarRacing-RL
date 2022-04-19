@@ -61,6 +61,7 @@ with tf.device('/CPU:0'):
     model.fit(x=x_train, 
             y=y_train, 
             epochs=5,
+            batch_size=4352,    # num RTX 2080 CUDA cores
             validation_data=(x_test, y_test), 
             callbacks=[tensorboard_callback])
 
@@ -71,6 +72,7 @@ with tf.device('/GPU:0'):
     model.fit(x=x_train, 
             y=y_train, 
             epochs=5,
+            batch_size=4352,    # num RTX 2080 CUDA cores
             validation_data=(x_test, y_test), 
             callbacks=[tensorboard_callback])
 
