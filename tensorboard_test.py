@@ -11,6 +11,8 @@ for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)   # set memory growth option
     # tf.config.set_logical_device_configuration( gpu, [tf.config.LogicalDeviceConfiguration(memory_limit=3000)] )    # set memory limit to 3 GB
 
+print( "--> Built with CUDA? {}".format(tf.test.is_built_with_cuda()) )
+
 # Creates a virtual display for OpenAI gym
 # pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
 
@@ -34,26 +36,41 @@ mnist = tf.keras.datasets.mnist
 x_train, x_test = x_train / 255.0, x_test / 255.0
 
 def create_model():
-    return tf.keras.models.Sequential([
-        tf.keras.layers.Flatten(input_shape=(28, 28)),
-        tf.keras.layers.Dense(512, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(10, activation='softmax')
-        ])
+    model = tf.keras.models.Sequential([
+                tf.keras.layers.Flatten(input_shape=(28, 28)),
+                tf.keras.layers.Dense(512, activation='relu'),
+                tf.keras.layers.Dropout(0.2),
+                tf.keras.layers.Dense(10, activation='softmax')
+                ])
+    model.compile(optimizer='adam',
+                loss='sparse_categorical_crossentropy',
+                metrics=['accuracy'])
 
-model = create_model()
-model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+    # Print summary of model architecture
+    print( model.summary() )
+    
+    return model
 
 # Get Hardware list
 hardware = tf.config.list_physical_devices(device_type=None)
 
-# Assign GPU/ CPU
-with tf.device('/GPU:0'):
+# CPU
+with tf.device('/CPU:0'):
+    model = create_model()
+
     model.fit(x=x_train, 
             y=y_train, 
-            epochs=50,
+            epochs=5,
+            validation_data=(x_test, y_test), 
+            callbacks=[tensorboard_callback])
+
+# Assign GPU
+with tf.device('/GPU:0'):
+    model = create_model()
+    
+    model.fit(x=x_train, 
+            y=y_train, 
+            epochs=5,
             validation_data=(x_test, y_test), 
             callbacks=[tensorboard_callback])
 
