@@ -10,3 +10,4 @@ pillow
 EasyProcess
 scipy
 tqdm
+matplotlib
