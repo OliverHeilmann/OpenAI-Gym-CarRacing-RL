@@ -13,7 +13,7 @@ def run_carRacing_asAgent():
         steps = 0
         t1 = time.time()  # Trial timer
         action = (0,0,0)
-        while True:
+        while total_reward > -10:
             
             state, reward, done, info = env.step(action)
             env.render()
@@ -23,7 +23,6 @@ def run_carRacing_asAgent():
             action_idx = agent.make_best_move(procesed_image)
             action = agent.possible_actions[action_idx]
 
-            # time.sleep(1/10)  # Slow down to 10fps for us poor little human!
             total_reward += reward
             if steps % 200 == 0 or done:
                 print("Step: {} | Reward: {:+0.2f}".format(steps, total_reward), "| Action:", a)
@@ -35,7 +34,7 @@ def run_carRacing_asAgent():
                 scores.append(total_reward)
                 print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs."% t1)
                 break
-        env.close()
+    env.close()
 
 
 if __name__ == "__main__":
@@ -44,7 +43,7 @@ if __name__ == "__main__":
     prev_err = 0
 
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    agent.load("/Users/Oliver/Downloads/episode_240.h5")
+    agent.load("model/oah33/DQN/20220420-181719/episode_27.h5")
     print("---> MODEL LOADED!")
 
     run_carRacing_asAgent()

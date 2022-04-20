@@ -31,7 +31,7 @@ pyvirtualdisplay.Display(visible=0, size=(720, 480)).start()
 USERNAME                = "oah33"
 MODEL_TYPE              = "DQN"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-SAVE_TRAINING_FREQUENCY = 1
+SAVE_TRAINING_FREQUENCY = 10
 model_dir = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Setup TensorBoard model
@@ -50,6 +50,7 @@ bool_do_not_quit = True  # Boolean to quit pyglet
 scores = []  # Your gaming score
 a = np.array( [0.0, 0.0, 0.0] )  # Actions
 prev_err = 0
+EPISODES = 1000
 
 class dnq_agent:
     def __init__(self,epsilon,n,gamma):
@@ -197,4 +198,4 @@ def train_agent(episodes, start_from = None):
 
 if __name__ == "__main__":
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    train_agent(100, start_from = "model/oah33/DQN/20220420-181001/episode_13.h5")
+    train_agent(EPISODES)#, start_from = "model/oah33/DQN/20220420-181001/episode_13.h5")
