@@ -1,18 +1,13 @@
 # Try to play by yourself!
 import gym
-from pyglet.window import key
 import numpy as np
-import time
 import cv2
-from keras import Model, Input
 from keras.models import Sequential
-from keras.layers import Concatenate
-from keras.layers import Dense, Activation, Flatten, Conv2D, MaxPooling2D
+from keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.optimizers import Adam
 import random
 from scipy import stats
 import tensorflow as tf
-from tensorflow.keras import datasets, layers, models
 import pyvirtualdisplay
 import datetime, os
 from tqdm import tqdm
