@@ -8,6 +8,7 @@ import cv2
 from keras import Model, Input
 from keras.models import Sequential
 from keras.layers import Concatenate
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from keras.layers import Dense, Activation, Flatten
 from tensorflow.keras.optimizers import Adam
 import random
@@ -29,7 +30,7 @@ for gpu in gpus:
     # tf.config.set_logical_device_configuration( gpu, [tf.config.LogicalDeviceConfiguration(memory_limit=3000)] )    # set memory limit to 3 GB
 
 # Creates a virtual display for OpenAI gym
-pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
+pyvirtualdisplay.Display(visible=0, size=(720, 480)).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
@@ -39,8 +40,11 @@ SAVE_TRAINING_FREQUENCY = 1
 model_dir = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Setup TensorBoard model
-log_dir = f"logs/fit/{TIMESTAMP}"
-tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+# log_dir = f"logs/fit/{TIMESTAMP}"
+# tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+# Eager execution
+tf.compat.v1.disable_eager_execution()
 
 
 ############################## MAIN CODE BODY ##################################
@@ -63,13 +67,17 @@ class dnq_agent:
         
         self.number_of_actions = len(self.possible_actions)
 
-        input_layer = tf.keras.Input(shape=(49))
-        flat = tf.keras.layers.Flatten()(input_layer)
-        dense1 = tf.keras.layers.Dense(64,activation='relu')(flat)
-        dense2 = tf.keras.layers.Dense(32,activation='relu')(dense1)
-        output_layer = tf.keras.layers.Dense(self.number_of_actions,activation='relu')(dense2)
-        self.model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
-        self.model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
+        # create DNN network with x2 conv layers
+        self.model = Sequential()
+        self.model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(86, 96, 1)))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+        self.model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
+        self.model.add(MaxPooling2D(pool_size=(2, 2)))
+        self.model.add(Flatten())
+        self.model.add(Dense(216, activation='relu'))
+        self.model.add(Dense(self.number_of_actions, activation=None))
+        self.model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.001, epsilon=1e-7))
+
 
     def make_move(self,state):
         state = np.expand_dims(state, axis=0)
@@ -77,7 +85,6 @@ class dnq_agent:
         actionIDX = actions.index(max(actions))
         if stats.bernoulli(self.epsilon).rvs():
             actionIDX = random.randint(0, self.number_of_actions-1)
-
         return actionIDX
 
     def make_observation(self,state,action,reward,new_state):
@@ -98,7 +105,7 @@ class dnq_agent:
             action_vals = self.model.predict(state)[0]
             action_vals[action] = y
             action_vals = np.expand_dims(action_vals , axis=0)
-            self.model.fit(state,action_vals,epochs=1,verbose=0, callbacks=[tensorboard_callback])  # note TensorBoard callback!
+            self.model.fit(state,action_vals,epochs=1,verbose=0) #, callbacks=[tensorboard_callback])  # note TensorBoard callback!
 
     def save(self, name):
         """Save model to appropriate dir, defined at start of code."""
@@ -108,28 +115,19 @@ class dnq_agent:
 
 
 def image_processing(state):
-    observation = state[63:65, 24:73]
-       #convert to hsv
-    hsv = cv2.cvtColor(observation, cv2.COLOR_BGR2HSV)
-    
-    mask_green = cv2.inRange(hsv, (36, 25, 25), (70, 255,255))
-
-    #slice the green
-    imask_green = mask_green>0
-    green = np.zeros_like(observation, np.uint8)
-    green[imask_green] = observation[imask_green]
-    gray = cv2.cvtColor(green, cv2.COLOR_RGB2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    canny = cv2.Canny(blur, 50, 150)
-    return canny[0]
+    x, y, _ = state.shape
+    h = int( 0.9*y ); w = x
+    gray = cv2.cvtColor(state, cv2.COLOR_BGR2GRAY)
+    crop_gray = gray[0:h, 0:w]
+    crop_gray = np.expand_dims(crop_gray, axis=2)
+    return crop_gray
 
 def train_agent(episodes):
     env = gym.make('CarRacing-v0').env
     # env =  CarRacing()
-    #env = wrappers.Monitor(env, '/homes/oah33/Reinforcement-Learning-G69', video_callable=False ,force=True)
 
     for episodeNum in range(episodes):
-        print("episode:",episodeNum)
+        print("[INFO]: Episode:", episodeNum )
         env.reset()  
         done = False
         action = (0,0,0)
@@ -137,8 +135,7 @@ def train_agent(episodes):
         step = 0
         reward_cum =0
         while not done and reward_cum  > -1:  
-            # print("episode:",episodeNum,"step:",step)
-            step+=1 
+            step+=1
             state, reward, done, info = env.step(action)
             reward_cum += reward
             procesed_image = image_processing(state) 
@@ -146,6 +143,7 @@ def train_agent(episodes):
             if state_access:
                 agent.make_observation(state=prev_state,action=action_idx,reward=reward,new_state=procesed_image)
                 agent.learn_from_D()
+
             prev_state = procesed_image
             state_access =True
             action_idx = agent.make_move(procesed_image)
@@ -157,6 +155,4 @@ def train_agent(episodes):
     env.close()
     
 agent = dnq_agent(epsilon=0.2,n=20)
-print("here",agent.possible_actions[0])
-print(agent.number_of_actions)
 train_agent(100)
