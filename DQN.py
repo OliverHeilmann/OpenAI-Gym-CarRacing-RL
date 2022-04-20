@@ -146,12 +146,17 @@ def image_processing(state):
     return crop_gray
 
 
-def train_agent(episodes):
-    env = gym.make('CarRacing-v0').env
+def train_agent(episodes, start_from = None):
+    # load model and continue training from episode X
+    episode = 0
+    if start_from:
+        agent.load( start_from )
+        episode = int(start_from.split("episode_")[1].split(".")[0])
 
+    env = gym.make('CarRacing-v0').env
     total_reward = []
 
-    for episodeNum in tqdm(range(episodes)):
+    for episodeNum in tqdm(range(episode+1, episodes)):
         rewards = []
         print("[INFO]: Starting Episode:", episodeNum )
         env.reset()  
@@ -192,4 +197,4 @@ def train_agent(episodes):
 
 if __name__ == "__main__":
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    train_agent(100)
+    train_agent(100, start_from = "model/oah33/DQN/20220420-181001/episode_13.h5")
