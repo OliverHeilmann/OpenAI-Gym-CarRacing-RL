@@ -152,7 +152,8 @@ def train_agent(episodes, start_from = None):
     episode = 0
     if start_from:
         agent.load( start_from )
-        episode = int(start_from.split("episode_")[1].split(".")[0])
+        model_dir = "./" + start_from.split("episode_")[0]  # overwrite model directory
+        episode = int(start_from.split("episode_")[1].split(".")[0])    # get current episode number
 
     env = gym.make('CarRacing-v0').env
     total_reward = []
@@ -198,4 +199,4 @@ def train_agent(episodes, start_from = None):
 
 if __name__ == "__main__":
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    train_agent(EPISODES)#, start_from = "model/oah33/DQN/20220420-181001/episode_13.h5")
+    train_agent(EPISODES, start_from = "model/oah33/DQN/20220420-183322/episode_10.h5")
