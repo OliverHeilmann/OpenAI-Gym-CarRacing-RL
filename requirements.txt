@@ -9,3 +9,4 @@ PyVirtualDisplay
 pillow
 EasyProcess
 scipy
+tqdm
