@@ -9,4 +9,4 @@ echo "DELETED OLD LOGS!"
 
 # run training AND tensorboard at same time
 # IMPORTANT! Change /code/<FILENAME.PY> to run your chosen script!
-python3 /code/tensorboard_test.py & tensorboard --logdir logs/fit --port=80 --host=0.0.0.0
+python3 /code/DQN.py & tensorboard --logdir logs/fit --port=80 --host=0.0.0.0
