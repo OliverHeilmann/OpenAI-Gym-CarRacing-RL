@@ -48,13 +48,16 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
-EPISODES                = 500
-SAVE_TRAINING_FREQUENCY = 10
+RENDER                  = True
+EPISODES                = 500       # training episodes
+SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
+SKIP_FRAMES             = 3         # skip n frames between batches
+TARGET_UPDATE_STEPS     = 200       # update target action value network every n steps
+MAX_PENALTY             = -20       # min score before env reset
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220421-123709/episode_38.h5"
-TEST                    = False
+PRETRAINED_PATH         = "model/oah33/DQN2/20220421-132428/episode_50.h5"
+TEST                    = False      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
@@ -66,11 +69,11 @@ class DQN_Agent:
                     (-1, 0, 0.2), (0, 0, 0.2), (1, 0, 0.2), # Range       -1~1     0~`1`   0~1
                     (-1, 0,   0), (0, 0,   0), (1, 0,   0)
                     ],
-                    memory_size     = 5000,     # threshold memory limit for replay buffer
-                    batch_size      = 20,       # number for batch fitting
+                    memory_size     = 10000,     # threshold memory limit for replay buffer
+                    batch_size      = 10,       # number for batch fitting
                     gamma           = 0.95,     # discount rate
                     epsilon         = 1.0,      # exploration rate
-                    epsilon_min     = 0.1,
+                    epsilon_min     = 0.00025,  # used by Atari
                     epsilon_decay   = 0.9999,
                     learning_rate   = 0.001
                 ):
@@ -108,7 +111,7 @@ class DQN_Agent:
     
     def store_transition( self, state, action, reward, new_state, done ):
         """Store transition in the replay memory (for replay buffer)."""
-        self.D.append( (state, action, reward, new_state, self.D) )
+        self.D.append( (state, action, reward, new_state, done) )
 
     def choose_action( self, state ):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
@@ -141,7 +144,7 @@ class DQN_Agent:
                 train_target.append(target)
 
             # batch fitting
-            self.model.fit( np.array( train_state), np.array(train_target), epochs=1, verbose=0 )
+            self.model.fit( np.array(train_state), np.array(train_target), epochs=1, verbose=0 )
             
             # epsilon decay
             if self.epsilon > self.epsilon_min:
@@ -162,7 +165,6 @@ class DQN_Agent:
         self.model.load_weights( name )
         self.model.set_weights( self.model.get_weights() )
 
-
 def convert_greyscale( state ):
     """Take input state and convert to greyscale for neural network."""
     x, y, _ = state.shape
@@ -171,7 +173,7 @@ def convert_greyscale( state ):
     crop_gray = gray[0:h, 0:w]
     return np.expand_dims( crop_gray, axis=2 )
 
-def train_agent( agent : DQN_Agent, env : gym.make, episodes : int, target_update_step = 40, max_penalty = -10 ):
+def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
     episode_rewards = []
     for episode in tqdm( range(episodes) ):
@@ -183,26 +185,27 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int, target_updat
         sum_reward = 0
         step = 0
         done = False
-        while not done and sum_reward > max_penalty:
-
+        while not done and sum_reward > MAX_PENALTY:
             # update target action value network every N steps ( to equal action value network)
-            if step % target_update_step == 0:
+            if step % TARGET_UPDATE_STEPS == 0:
                 agent.update_model()
 
             # choose action to take next
             action = agent.choose_action( state_grey )
 
-            # take action and observe new state, reward and if terminal
+            # take action and observe new state, reward and if terminal.
             new_state_colour, reward, done, _ = env.step( action )
+            
+            # convert to greyscale for NN
+            new_state_grey = convert_greyscale( new_state_colour )
 
             # render if user has specified
             if RENDER: env.render()
 
-            # convert to greyscale for NN
-            new_state_grey = convert_greyscale( new_state_colour )
-
-            # store transition states for experience replay
-            agent.store_transition( state_grey, action, reward, new_state_grey, done )
+            # if steps % SKIP_FRAMES == 0 then add the data to training
+            if step % SKIP_FRAMES == 0:
+                # store transition states for experience replay
+                agent.store_transition( state_grey, action, reward, new_state_grey, done )
 
             # do experience replay
             agent.experience_replay()
@@ -217,9 +220,10 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int, target_updat
 
         if episode % SAVE_TRAINING_FREQUENCY == 0:
             agent.save(f"episode_{episode}", rewards = episode_rewards)
+    env.close()
 
 
-def test_agent( agent : DQN_Agent, env : gym.make, model : str, render = True,  max_penalty = -10):
+def test_agent( agent : DQN_Agent, env : gym.make, model : str, render = True ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
@@ -230,7 +234,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, render = True,  
 
         sum_reward = 0.0
         t1 = time.time()  # Trial timer
-        while sum_reward > max_penalty:
+        while sum_reward > MAX_PENALTY:
 
             # choose action to take next
             action = agent.choose_action( state_grey )
@@ -254,7 +258,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, render = True,  
         run_rewards.append( sum_reward )
         
         print("[INFO]: Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
-    env.close()
+
 
 if __name__ == "__main__":
     env = gym.make('CarRacing-v0').env
