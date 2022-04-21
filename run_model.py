@@ -43,7 +43,7 @@ if __name__ == "__main__":
     prev_err = 0
 
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    agent.load("model/oah33/DQN/20220420-181719/episode_27.h5")
+    agent.load("model/oah33/DQN/20220420-183322/episode_40.h5")
     print("---> MODEL LOADED!")
 
     run_carRacing_asAgent()

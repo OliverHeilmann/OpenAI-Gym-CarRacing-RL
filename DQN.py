@@ -199,4 +199,4 @@ def train_agent(episodes, start_from = None):
 
 if __name__ == "__main__":
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    train_agent(EPISODES, start_from = "model/oah33/DQN/20220420-183322/episode_10.h5")
+    train_agent(EPISODES, start_from = "model/oah33/DQN/20220420-183322/episode_40.h5")
