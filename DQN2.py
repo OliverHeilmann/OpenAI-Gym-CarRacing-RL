@@ -48,16 +48,16 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
+RENDER                  = True
 EPISODES                = 2000      # training episodes
-SAVE_TRAINING_FREQUENCY = 1         # save model every n episodes
+SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 40        # update target action value network every n steps
 MAX_PENALTY             = -15       # min score before env reset
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220421-192748/episode_6.h5"
-TEST                    = False      # true = testing, false = training
+PRETRAINED_PATH         = "model/oah33/DQN2/20220421-194035/episode_57.h5"
+TEST                    = True      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
