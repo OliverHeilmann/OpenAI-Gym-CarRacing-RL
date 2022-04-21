@@ -179,6 +179,8 @@ def train_agent(episodes, start_from = None):
             state, reward, done, info = env.step(action)
             reward_cum += reward
 
+            env.render()
+
             # get cropped and grey image
             procesed_image = image_processing(state) 
 
@@ -199,4 +201,4 @@ def train_agent(episodes, start_from = None):
 
 if __name__ == "__main__":
     agent = dnq_agent(epsilon=0.2,n=100,gamma=0.5)
-    train_agent(EPISODES, start_from = "model/oah33/DQN/20220420-183322/episode_40.h5")
+    train_agent(EPISODES)#, start_from = "model/oah33/DQN/20220420-183322/episode_40.h5")

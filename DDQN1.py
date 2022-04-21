@@ -40,7 +40,7 @@ pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "DQN2"
+MODEL_TYPE              = "DDQN1"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
@@ -48,20 +48,20 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
+RENDER                  = True
 EPISODES                = 2000      # training episodes
-SAVE_TRAINING_FREQUENCY = 1         # save model every n episodes
+SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
-TARGET_UPDATE_STEPS     = 40        # update target action value network every n steps
-MAX_PENALTY             = -15       # min score before env reset
+TARGET_UPDATE_STEPS     = 5         # update target action value network every n steps
+MAX_PENALTY             = -1        # min score before env reset
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220421-192748/episode_6.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220421-132428/episode_50.h5"
 TEST                    = False      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
-class DQN_Agent:
+class DDQN_Agent:
     def __init__(   self, 
                     action_space    = [
                     (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #           Action Space Structure
@@ -108,7 +108,7 @@ class DQN_Agent:
     def update_model( self ):
         """Update Target Action Value Network to be equal to Action Value Network"""
         self.target_model.set_weights( self.model.get_weights() )
-    
+
     def store_transition( self, state, action, reward, new_state, done ):
         """Store transition in the replay memory (for replay buffer)."""
         self.D.append( (state, action, reward, new_state, done) )
@@ -138,8 +138,16 @@ class DQN_Agent:
                 if done:
                     target[ self.action_space.index(action) ] = reward
                 else:
-                    t = self.target_model.predict(np.expand_dims(next_state, axis=0))[0]
-                    target[ self.action_space.index(action) ] = reward + self.gamma * np.amax(t)
+                    ############ Double Deep Q Learning Here! #############
+                    # get index of action value network prediction for best action at next state
+                    t = self.model.predict(np.expand_dims(next_state, axis=0))[0]
+                    t_index = np.where(t == np.amax(t))[0][0]
+
+                    # get target network prediction for next state, then use index calc'd above to
+                    # update Q action value network
+                    target_t = self.target_model.predict(np.expand_dims(next_state, axis=0))[0]
+                    target[ self.action_space.index(action) ] = reward + self.gamma * target_t[ t_index ]
+                
                 train_state.append(state)
                 train_target.append(target)
 
@@ -176,7 +184,7 @@ def convert_greyscale( state ):
     # returns [ greyscale image, T/F of if road is visible ]
     return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
 
-def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
+def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
     episode_rewards = []
     for episode in tqdm( range(episodes) ):
@@ -226,7 +234,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     env.close()
 
 
-def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
+def test_agent( agent : DDQN_Agent, env : gym.make, model : str ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
@@ -268,10 +276,10 @@ if __name__ == "__main__":
 
     if not TEST:
         # Train Agent
-        agent = DQN_Agent()
+        agent = DDQN_Agent()
         train_agent( agent, env, episodes = EPISODES )
     
     else:
         # Test Agent
-        agent = DQN_Agent()
+        agent = DDQN_Agent()
         test_agent( agent, env, model = PRETRAINED_PATH )
