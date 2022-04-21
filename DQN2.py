@@ -48,8 +48,8 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = True
-EPISODES                = 1000       # training episodes
+RENDER                  = False
+EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
 SKIP_FRAMES             = 3         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 200       # update target action value network every n steps
@@ -100,7 +100,7 @@ class DQN_Agent:
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Flatten())
         model.add(Dense(216, activation='relu'))
-        model.add(Dense(108, activation='relu'))
+        model.add(Dense(54, activation='relu'))
         model.add(Dense(len(self.action_space), activation=None))
         model.compile(loss='mean_squared_error', optimizer=Adam(lr=self.learning_rate, epsilon=1e-7))
         return model
@@ -219,7 +219,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             step += 1
 
         # Store episode reward
-        episode_rewards.append( sum_reward )
+        episode_rewards.append( [sum_reward, agent.epsilon] )
 
         if episode % SAVE_TRAINING_FREQUENCY == 0:
             agent.save(f"episode_{episode}", rewards = episode_rewards)
