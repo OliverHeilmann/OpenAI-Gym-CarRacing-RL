@@ -48,13 +48,13 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = True
+RENDER                  = False
 EPISODES                = 500
-SAVE_TRAINING_FREQUENCY = 1
+SAVE_TRAINING_FREQUENCY = 10
 
 # Testing params
 PRETRAINED_PATH         = "model/oah33/DQN2/20220421-123709/episode_38.h5"
-TEST                    = True
+TEST                    = False
 
 
 ############################## MAIN CODE BODY ##################################
