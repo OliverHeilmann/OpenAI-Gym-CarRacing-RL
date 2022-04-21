@@ -49,11 +49,11 @@ REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 
 # Training params
 RENDER                  = True
-EPISODES                = 500       # training episodes
+EPISODES                = 1000       # training episodes
 SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
 SKIP_FRAMES             = 3         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 200       # update target action value network every n steps
-MAX_PENALTY             = -20       # min score before env reset
+MAX_PENALTY             = -15       # min score before env reset
 
 # Testing params
 PRETRAINED_PATH         = "model/oah33/DQN2/20220421-132428/episode_50.h5"
@@ -94,15 +94,15 @@ class DQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(86, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Flatten())
+        model.add(Dense(216, activation='relu'))
         model.add(Dense(108, activation='relu'))
-        model.add(Dense(54, activation='relu'))
         model.add(Dense(len(self.action_space), activation=None))
-        model.compile(loss=tf.keras.losses.Huber(delta = 1), optimizer=Adam(lr=self.learning_rate, epsilon=1e-7))
+        model.compile(loss='mean_squared_error', optimizer=Adam(lr=self.learning_rate, epsilon=1e-7))
         return model
 
     def update_model( self ):
@@ -166,12 +166,15 @@ class DQN_Agent:
         self.model.set_weights( self.model.get_weights() )
 
 def convert_greyscale( state ):
-    """Take input state and convert to greyscale for neural network."""
+    """Take input state and convert to greyscale. Check if road is visible in frame."""
     x, y, _ = state.shape
-    h = int( 0.9*y ); w = x
+    state = state[ 0:int( 0.85*y ) , 0:x ]
+    mask = cv2.inRange( state,  np.array([100, 100, 100]),  # dark_grey
+                                np.array([150, 150, 150]))  # light_grey
     gray = cv2.cvtColor(state, cv2.COLOR_BGR2GRAY)
-    crop_gray = gray[0:h, 0:w]
-    return np.expand_dims( crop_gray, axis=2 )
+
+    # return [ greyscale image, T/F of if road is visible ]
+    return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
 
 def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
@@ -180,12 +183,12 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
         print( f"[INFO]: Starting Episode {episode}" )
         
         state_colour = env.reset() 
-        state_grey = convert_greyscale( state_colour )
+        state_grey, can_see_road = convert_greyscale( state_colour )
 
         sum_reward = 0
         step = 0
         done = False
-        while not done and sum_reward > MAX_PENALTY:
+        while not done and sum_reward > MAX_PENALTY and can_see_road:
             # update target action value network every N steps ( to equal action value network)
             if step % TARGET_UPDATE_STEPS == 0:
                 agent.update_model()
@@ -197,7 +200,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             new_state_colour, reward, done, _ = env.step( action )
             
             # convert to greyscale for NN
-            new_state_grey = convert_greyscale( new_state_colour )
+            new_state_grey, can_see_road = convert_greyscale( new_state_colour )
 
             # render if user has specified
             if RENDER: env.render()
