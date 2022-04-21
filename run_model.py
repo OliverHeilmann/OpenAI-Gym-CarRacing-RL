@@ -2,7 +2,7 @@
 import gym
 import numpy as np
 import time
-from DQN import image_processing, dnq_agent
+from DQN1 import image_processing, dnq_agent
 
 def run_carRacing_asAgent():
     env = gym.make('CarRacing-v0').env
