@@ -48,7 +48,7 @@ for ep in range(num_episodes):
     agent.reset()
     done = False
     episode_reward = 0
-    no_reward_counter = 0
+    out_of_track = 0
 
     # One-step-loop
     while not done:
@@ -67,11 +67,11 @@ for ep in range(num_episodes):
         episode_reward += reward
 
         if reward < 0:
-            no_reward_counter += 1
-            if no_reward_counter > 200:
+            out_of_track += 1
+            if out_of_track > 200:
                 break
         else:
-            no_reward_counter = 0
+            out_of_track = 0
 
     all_episode_reward.append(episode_reward)
     average_result = np.array(all_episode_reward[-100:]).mean()
