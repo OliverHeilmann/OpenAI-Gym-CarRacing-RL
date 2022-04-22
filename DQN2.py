@@ -51,13 +51,13 @@ REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 RENDER                  = True
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
-SKIP_FRAMES             = 2         # skip n frames between batches
+SKIP_FRAMES             = 3         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
 MAX_PENALTY             = -1        # min score before env reset
 BATCH_SIZE              = 10        # number for batch fitting
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220421-234646/episode_60.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-112652/episode_130.h5"
 TEST                    = False      # true = testing, false = training
 
 
@@ -93,7 +93,7 @@ class DQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 3)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -163,17 +163,17 @@ class DQN_Agent:
         self.model.load_weights( name )
         self.model.set_weights( self.model.get_weights() )
 
+
 def convert_greyscale( state ):
     """Take input state and convert to greyscale. Check if road is visible in frame."""
     x, y, _ = state.shape
     cropped = state[ 0:int( 0.85*y ) , 0:x ]
     mask = cv2.inRange( cropped,  np.array([100, 100, 100]),  # dark_grey
                                   np.array([150, 150, 150]))  # light_grey
-    gray = cv2.cvtColor( state, cv2.COLOR_BGR2GRAY )
+    gray = cv2.cvtColor( cropped, cv2.COLOR_BGR2GRAY )
 
     # returns [ greyscale image, T/F of if road is visible ]
-    # return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
-    return [ state, np.any(mask== 255) ]
+    return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
 
 def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
@@ -192,21 +192,25 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             action = agent.choose_action( state_grey )
 
             # take action and observe new state, reward and if terminal.
-            new_state_colour, reward, done, _ = env.step( action )
-            
+            # include "future thinking" by forcing agent to do chosen action 
+            # SKIP_FRAMES times in a row. 
+            reward = 0
+            for _ in range(SKIP_FRAMES+1):
+                new_state_colour, r, done, _ = env.step(action)
+                reward += r
+
+                # render if user has specified, break if terminal
+                if RENDER: env.render()
+                if done: break
+
             # convert to greyscale for NN
             new_state_grey, can_see_road = convert_greyscale( new_state_colour )
             if not can_see_road: reward -= 10
 
-            # render if user has specified
-            if RENDER: env.render()
+            # store transition states for experience replay
+            agent.store_transition( state_grey, action, reward, new_state_grey, done )
 
-            # if steps % SKIP_FRAMES == 0 then add the data to training
-            if step % SKIP_FRAMES == 0:
-                # store transition states for experience replay
-                agent.store_transition( state_grey, action, reward, new_state_grey, done )
-
-            # do experience replay
+            # do experience replay training with a batch of data
             agent.experience_replay()
 
             # update params for next loop
