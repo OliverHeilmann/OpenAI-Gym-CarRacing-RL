@@ -50,16 +50,16 @@ REWARD_DIR              = f"rewards/{TIMESTAMP}/"
 # Training params
 RENDER                  = True
 EPISODES                = 2000      # training episodes
-SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
-SKIP_FRAMES             = 3         # skip n frames between batches
+SAVE_TRAINING_FREQUENCY = 25        # save model every n episodes
+SKIP_FRAMES             = 2         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
-MAX_PENALTY             = -1        # min score before env reset
+MAX_PENALTY             = -5        # min score before env reset
 BATCH_SIZE              = 10        # number for batch fitting
-CONSECUTIVE_NEG_REWARD  = 15        # number of consecutive negative rewards before terminating episode
+CONSECUTIVE_NEG_REWARD  = 30        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2_Still/20220422-130236/episode_700.h5"
-TEST                    = False      # true = testing, false = training
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_450.h5"
+TEST                    = True      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
@@ -94,7 +94,7 @@ class DQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 3)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -177,7 +177,8 @@ def convert_greyscale( state ):
     gray = cv2.cvtColor( cropped, cv2.COLOR_BGR2GRAY )
 
     # returns [ greyscale image, T/F of if road is visible ]
-    return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
+    # return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
+    return [ state, np.any(mask== 255) ]
 
 def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
@@ -199,10 +200,10 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             # include "future thinking" by forcing agent to do chosen action 
             # SKIP_FRAMES times in a row. 
             reward = 0
-            for _ in range( random.randint(1,SKIP_FRAMES) + 1 ):
+            for _ in range( SKIP_FRAMES + 1 ):
                 new_state_colour, r, done, _ = env.step(action)
                 reward += r
-                
+
                 # render if user has specified, break if terminal
                 if RENDER: env.render()
                 if done: break
