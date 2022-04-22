@@ -37,7 +37,7 @@ pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "DDQN1"
+MODEL_TYPE              = "DDQN1_96b96_NN"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
