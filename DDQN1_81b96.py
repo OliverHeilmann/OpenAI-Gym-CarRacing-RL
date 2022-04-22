@@ -1,8 +1,4 @@
-# DQN version 2 to improve on the performance of DQN1.py
-# Changes:
-# 1. ...
-# 2. ...
-# 3. ...
+# DDQN version 1 to improve on the performance of DQN2.py
 
 # Environment imports
 import random
@@ -94,7 +90,7 @@ class DQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -182,7 +178,7 @@ def convert_greyscale( state ):
     cropped = state[ 0:int( 0.85*y ) , 0:x ]
     mask = cv2.inRange( cropped,  np.array([100, 100, 100]),  # dark_grey
                                   np.array([150, 150, 150]))  # light_grey
-    gray = cv2.cvtColor( state, cv2.COLOR_BGR2GRAY )
+    gray = cv2.cvtColor( cropped, cv2.COLOR_BGR2GRAY )
 
     # returns [ greyscale image, T/F of if road is visible ]
     return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
