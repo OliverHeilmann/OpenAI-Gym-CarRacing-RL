@@ -55,6 +55,7 @@ SKIP_FRAMES             = 3         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
 MAX_PENALTY             = -1        # min score before env reset
 BATCH_SIZE              = 10        # number for batch fitting
+CONSECUTIVE_NEG_REWARD  = 15        # number of consecutive negative rewards before terminating episode
 
 # Testing params
 PRETRAINED_PATH         = "model/oah33/DQN2_Still/20220422-130236/episode_700.h5"
@@ -71,9 +72,9 @@ class DQN_Agent:
                     (-1, 0,   0), (0, 0,   0), (1, 0,   0)
                     ],
                     memory_size     = 10000,     # threshold memory limit for replay buffer
-                    gamma           = 0.95,     # discount rate
-                    epsilon         = 1.0,      # exploration rate
-                    epsilon_min     = 0.00025,  # used by Atari
+                    gamma           = 0.95,      # discount rate
+                    epsilon         = 1.0,       # exploration rate
+                    epsilon_min     = 0.1,       # used by Atari
                     epsilon_decay   = 0.9999,
                     learning_rate   = 0.001
                 ):
@@ -205,6 +206,10 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
                 # render if user has specified, break if terminal
                 if RENDER: env.render()
                 if done: break
+
+            # Count number of negative rewards collected sequentially, if reward non-negative, restart counting
+            repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
+            if repeat_neg_reward >= CONSECUTIVE_NEG_REWARD: break
 
             # convert to greyscale for NN
             new_state_grey, can_see_road = convert_greyscale( new_state_colour )
