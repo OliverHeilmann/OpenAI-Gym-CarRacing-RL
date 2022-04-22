@@ -44,7 +44,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = True
+RENDER                  = False
 EPISODES                = 5000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
