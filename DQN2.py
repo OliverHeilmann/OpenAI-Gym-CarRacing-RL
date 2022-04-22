@@ -52,12 +52,13 @@ RENDER                  = True
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
-TARGET_UPDATE_STEPS     = 40        # update target action value network every n steps
-MAX_PENALTY             = -15       # min score before env reset
+TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
+MAX_PENALTY             = -1        # min score before env reset
+BATCH_SIZE              = 10        # number for batch fitting
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220421-194035/episode_57.h5"
-TEST                    = True      # true = testing, false = training
+PRETRAINED_PATH         = "model/oah33/DQN2/20220421-234646/episode_60.h5"
+TEST                    = False      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
@@ -70,7 +71,6 @@ class DQN_Agent:
                     (-1, 0,   0), (0, 0,   0), (1, 0,   0)
                     ],
                     memory_size     = 10000,     # threshold memory limit for replay buffer
-                    batch_size      = 10,       # number for batch fitting
                     gamma           = 0.95,     # discount rate
                     epsilon         = 1.0,      # exploration rate
                     epsilon_min     = 0.00025,  # used by Atari
@@ -80,7 +80,6 @@ class DQN_Agent:
         
         self.action_space    = action_space
         self.D               = deque( maxlen=memory_size )
-        self.batch_size      = batch_size
         self.gamma           = gamma
         self.epsilon         = epsilon
         self.epsilon_min     = epsilon_min
@@ -94,7 +93,7 @@ class DQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 3)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -116,19 +115,18 @@ class DQN_Agent:
     def choose_action( self, state ):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
         state = np.expand_dims(state, axis=0)
-        actions = list( self.target_model.predict(state)[0] )
-        actionIDX = actions.index( max(actions) )
+        actionIDX = np.argmax( self.model.predict(state)[0] )
 
         # epsilon chance to choose random action
         if stats.bernoulli( self.epsilon ).rvs():
-            actionIDX = random.randint( 0, len(self.action_space)-1 )
+            actionIDX =  random.randrange( len(self.action_space) )
         return self.action_space[ actionIDX ]
 
     def experience_replay( self ):
         """Use experience_replay with batch fitting and epsilon decay."""
-        if len( self.D ) >= self.batch_size:
+        if len( self.D ) >= BATCH_SIZE:
             # batch sample size
-            minibatch = random.sample( self.D, self.batch_size )
+            minibatch = random.sample( self.D, BATCH_SIZE )
 
             # experience replay
             train_state = []
@@ -154,7 +152,7 @@ class DQN_Agent:
         """Save model and rewards list to appropriate dir, defined at start of code."""
         if not os.path.exists( MODEL_DIR ):
              os.makedirs( MODEL_DIR )
-        self.model.save_weights( MODEL_DIR + name + ".h5" )
+        self.target_model.save_weights( MODEL_DIR + name + ".h5" )
 
         if not os.path.exists( REWARD_DIR ):
              os.makedirs( REWARD_DIR )
@@ -168,13 +166,14 @@ class DQN_Agent:
 def convert_greyscale( state ):
     """Take input state and convert to greyscale. Check if road is visible in frame."""
     x, y, _ = state.shape
-    state = state[ 0:int( 0.85*y ) , 0:x ]
-    mask = cv2.inRange( state,  np.array([100, 100, 100]),  # dark_grey
-                                np.array([150, 150, 150]))  # light_grey
-    gray = cv2.cvtColor(state, cv2.COLOR_BGR2GRAY)
+    cropped = state[ 0:int( 0.85*y ) , 0:x ]
+    mask = cv2.inRange( cropped,  np.array([100, 100, 100]),  # dark_grey
+                                  np.array([150, 150, 150]))  # light_grey
+    gray = cv2.cvtColor( state, cv2.COLOR_BGR2GRAY )
 
     # returns [ greyscale image, T/F of if road is visible ]
-    return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
+    # return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
+    return [ state, np.any(mask== 255) ]
 
 def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
@@ -189,10 +188,6 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
         step = 0
         done = False
         while not done and sum_reward > MAX_PENALTY and can_see_road:
-            # update target action value network every N steps ( to equal action value network)
-            if step % TARGET_UPDATE_STEPS == 0:
-                agent.update_model()
-
             # choose action to take next
             action = agent.choose_action( state_grey )
 
@@ -201,6 +196,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             
             # convert to greyscale for NN
             new_state_grey, can_see_road = convert_greyscale( new_state_colour )
+            if not can_see_road: reward -= 10
 
             # render if user has specified
             if RENDER: env.render()
@@ -220,6 +216,10 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
 
         # Store episode reward
         episode_rewards.append( [sum_reward, agent.epsilon] )
+
+        # update target action value network every N steps ( to equal action value network)
+        if episode % TARGET_UPDATE_STEPS == 0:
+            agent.update_model()
 
         if episode % SAVE_TRAINING_FREQUENCY == 0:
             agent.save(f"episode_{episode}", rewards = episode_rewards)
