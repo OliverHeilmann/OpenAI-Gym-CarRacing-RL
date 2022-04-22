@@ -45,7 +45,7 @@ TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Setup Reward Dir
-REWARD_DIR              = f"rewards/{TIMESTAMP}/"
+REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
 RENDER                  = True
@@ -58,7 +58,7 @@ BATCH_SIZE              = 10        # number for batch fitting
 CONSECUTIVE_NEG_REWARD  = 30        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_450.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_650.h5"
 TEST                    = True      # true = testing, false = training
 
 
