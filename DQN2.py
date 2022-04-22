@@ -57,7 +57,7 @@ MAX_PENALTY             = -1        # min score before env reset
 BATCH_SIZE              = 10        # number for batch fitting
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220422-112652/episode_130.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-130236/episode_190.h5"
 TEST                    = False      # true = testing, false = training
 
 
@@ -112,10 +112,13 @@ class DQN_Agent:
         """Store transition in the replay memory (for replay buffer)."""
         self.D.append( (state, action, reward, new_state, done) )
 
-    def choose_action( self, state ):
+    def choose_action( self, state, best=False):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
         state = np.expand_dims(state, axis=0)
         actionIDX = np.argmax( self.model.predict(state)[0] )
+
+        # return best action if defined
+        if best: return self.action_space[ actionIDX ]
 
         # epsilon chance to choose random action
         if stats.bernoulli( self.epsilon ).rvs():
@@ -244,7 +247,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
         while sum_reward > MAX_PENALTY:
 
             # choose action to take next
-            action = agent.choose_action( state_grey )
+            action = agent.choose_action( state_grey, best=True )
             
             # take action and observe new state, reward and if terminal
             new_state_colour, reward, done, _ = env.step( action )
