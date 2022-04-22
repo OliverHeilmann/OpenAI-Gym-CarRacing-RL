@@ -57,7 +57,7 @@ MAX_PENALTY             = -1        # min score before env reset
 BATCH_SIZE              = 10        # number for batch fitting
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220422-130236/episode_190.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2_Still/20220422-130236/episode_700.h5"
 TEST                    = False      # true = testing, false = training
 
 
@@ -198,17 +198,16 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             # include "future thinking" by forcing agent to do chosen action 
             # SKIP_FRAMES times in a row. 
             reward = 0
-            for _ in range(SKIP_FRAMES+1):
+            for _ in range( random.randint(1,SKIP_FRAMES) + 1 ):
                 new_state_colour, r, done, _ = env.step(action)
                 reward += r
-
+                
                 # render if user has specified, break if terminal
                 if RENDER: env.render()
                 if done: break
 
             # convert to greyscale for NN
             new_state_grey, can_see_road = convert_greyscale( new_state_colour )
-            if not can_see_road: reward -= 10
 
             # store transition states for experience replay
             agent.store_transition( state_grey, action, reward, new_state_grey, done )
