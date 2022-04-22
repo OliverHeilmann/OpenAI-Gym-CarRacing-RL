@@ -11,5 +11,5 @@ dep
 *.xml
 *.iml
 *.idea/
-model
-rewards
+# model
+# rewards

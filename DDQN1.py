@@ -45,23 +45,25 @@ TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Setup Reward Dir
-REWARD_DIR              = f"rewards/{TIMESTAMP}/"
+REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
 RENDER                  = True
-EPISODES                = 2000      # training episodes
-SAVE_TRAINING_FREQUENCY = 10        # save model every n episodes
+EPISODES                = 5000      # training episodes
+SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
-TARGET_UPDATE_STEPS     = 5         # update target action value network every n steps
-MAX_PENALTY             = -1        # min score before env reset
+TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
+MAX_PENALTY             = -5        # min score before env reset
+BATCH_SIZE              = 10        # number for batch fitting
+CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220421-132428/episode_50.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_975.h5"
 TEST                    = False      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
-class DDQN_Agent:
+class DQN_Agent:
     def __init__(   self, 
                     action_space    = [
                     (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #           Action Space Structure
@@ -70,17 +72,15 @@ class DDQN_Agent:
                     (-1, 0,   0), (0, 0,   0), (1, 0,   0)
                     ],
                     memory_size     = 10000,     # threshold memory limit for replay buffer
-                    batch_size      = 10,       # number for batch fitting
-                    gamma           = 0.95,     # discount rate
-                    epsilon         = 1.0,      # exploration rate
-                    epsilon_min     = 0.00025,  # used by Atari
+                    gamma           = 0.95,      # discount rate
+                    epsilon         = 1.0,       # exploration rate
+                    epsilon_min     = 0.1,       # used by Atari
                     epsilon_decay   = 0.9999,
                     learning_rate   = 0.001
                 ):
         
         self.action_space    = action_space
         self.D               = deque( maxlen=memory_size )
-        self.batch_size      = batch_size
         self.gamma           = gamma
         self.epsilon         = epsilon
         self.epsilon_min     = epsilon_min
@@ -94,7 +94,7 @@ class DDQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 1)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -108,27 +108,29 @@ class DDQN_Agent:
     def update_model( self ):
         """Update Target Action Value Network to be equal to Action Value Network"""
         self.target_model.set_weights( self.model.get_weights() )
-
+    
     def store_transition( self, state, action, reward, new_state, done ):
         """Store transition in the replay memory (for replay buffer)."""
         self.D.append( (state, action, reward, new_state, done) )
 
-    def choose_action( self, state ):
+    def choose_action( self, state, best=False):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
         state = np.expand_dims(state, axis=0)
-        actions = list( self.target_model.predict(state)[0] )
-        actionIDX = actions.index( max(actions) )
+        actionIDX = np.argmax( self.model.predict(state)[0] )
+
+        # return best action if defined
+        if best: return self.action_space[ actionIDX ]
 
         # epsilon chance to choose random action
         if stats.bernoulli( self.epsilon ).rvs():
-            actionIDX = random.randint( 0, len(self.action_space)-1 )
+            actionIDX =  random.randrange( len(self.action_space) )
         return self.action_space[ actionIDX ]
 
     def experience_replay( self ):
         """Use experience_replay with batch fitting and epsilon decay."""
-        if len( self.D ) >= self.batch_size:
+        if len( self.D ) >= BATCH_SIZE:
             # batch sample size
-            minibatch = random.sample( self.D, self.batch_size )
+            minibatch = random.sample( self.D, BATCH_SIZE )
 
             # experience replay
             train_state = []
@@ -147,7 +149,7 @@ class DDQN_Agent:
                     # update Q action value network
                     target_t = self.target_model.predict(np.expand_dims(next_state, axis=0))[0]
                     target[ self.action_space.index(action) ] = reward + self.gamma * target_t[ t_index ]
-                
+
                 train_state.append(state)
                 train_target.append(target)
 
@@ -162,7 +164,7 @@ class DDQN_Agent:
         """Save model and rewards list to appropriate dir, defined at start of code."""
         if not os.path.exists( MODEL_DIR ):
              os.makedirs( MODEL_DIR )
-        self.model.save_weights( MODEL_DIR + name + ".h5" )
+        self.target_model.save_weights( MODEL_DIR + name + ".h5" )
 
         if not os.path.exists( REWARD_DIR ):
              os.makedirs( REWARD_DIR )
@@ -173,18 +175,19 @@ class DDQN_Agent:
         self.model.load_weights( name )
         self.model.set_weights( self.model.get_weights() )
 
+
 def convert_greyscale( state ):
     """Take input state and convert to greyscale. Check if road is visible in frame."""
     x, y, _ = state.shape
-    state = state[ 0:int( 0.85*y ) , 0:x ]
-    mask = cv2.inRange( state,  np.array([100, 100, 100]),  # dark_grey
-                                np.array([150, 150, 150]))  # light_grey
-    gray = cv2.cvtColor(state, cv2.COLOR_BGR2GRAY)
+    cropped = state[ 0:int( 0.85*y ) , 0:x ]
+    mask = cv2.inRange( cropped,  np.array([100, 100, 100]),  # dark_grey
+                                  np.array([150, 150, 150]))  # light_grey
+    gray = cv2.cvtColor( state, cv2.COLOR_BGR2GRAY )
 
     # returns [ greyscale image, T/F of if road is visible ]
     return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
 
-def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
+def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
     episode_rewards = []
     for episode in tqdm( range(episodes) ):
@@ -197,28 +200,32 @@ def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
         step = 0
         done = False
         while not done and sum_reward > MAX_PENALTY and can_see_road:
-            # update target action value network every N steps ( to equal action value network)
-            if step % TARGET_UPDATE_STEPS == 0:
-                agent.update_model()
-
             # choose action to take next
             action = agent.choose_action( state_grey )
 
             # take action and observe new state, reward and if terminal.
-            new_state_colour, reward, done, _ = env.step( action )
-            
+            # include "future thinking" by forcing agent to do chosen action 
+            # SKIP_FRAMES times in a row. 
+            reward = 0
+            for _ in range( SKIP_FRAMES + 1 ):
+                new_state_colour, r, done, _ = env.step(action)
+                reward += r
+
+                # render if user has specified, break if terminal
+                if RENDER: env.render()
+                if done: break
+
+            # Count number of negative rewards collected sequentially, if reward non-negative, restart counting
+            repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
+            if repeat_neg_reward >= CONSECUTIVE_NEG_REWARD: break
+
             # convert to greyscale for NN
             new_state_grey, can_see_road = convert_greyscale( new_state_colour )
 
-            # render if user has specified
-            if RENDER: env.render()
+            # store transition states for experience replay
+            agent.store_transition( state_grey, action, reward, new_state_grey, done )
 
-            # if steps % SKIP_FRAMES == 0 then add the data to training
-            if step % SKIP_FRAMES == 0:
-                # store transition states for experience replay
-                agent.store_transition( state_grey, action, reward, new_state_grey, done )
-
-            # do experience replay
+            # do experience replay training with a batch of data
             agent.experience_replay()
 
             # update params for next loop
@@ -229,12 +236,16 @@ def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
         # Store episode reward
         episode_rewards.append( [sum_reward, agent.epsilon] )
 
+        # update target action value network every N steps ( to equal action value network)
+        if episode % TARGET_UPDATE_STEPS == 0:
+            agent.update_model()
+
         if episode % SAVE_TRAINING_FREQUENCY == 0:
             agent.save(f"episode_{episode}", rewards = episode_rewards)
     env.close()
 
 
-def test_agent( agent : DDQN_Agent, env : gym.make, model : str ):
+def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
@@ -248,7 +259,7 @@ def test_agent( agent : DDQN_Agent, env : gym.make, model : str ):
         while sum_reward > MAX_PENALTY:
 
             # choose action to take next
-            action = agent.choose_action( state_grey )
+            action = agent.choose_action( state_grey, best=True )
             
             # take action and observe new state, reward and if terminal
             new_state_colour, reward, done, _ = env.step( action )
@@ -266,7 +277,7 @@ def test_agent( agent : DDQN_Agent, env : gym.make, model : str ):
 
         t1 = time.time()-t1
         run_rewards.append( sum_reward )
-        run_rewards.append( sum_reward )
+        run_rewards.append( t1 )
         
         print("[INFO]: Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
 
@@ -276,10 +287,10 @@ if __name__ == "__main__":
 
     if not TEST:
         # Train Agent
-        agent = DDQN_Agent()
+        agent = DQN_Agent()
         train_agent( agent, env, episodes = EPISODES )
     
     else:
         # Test Agent
-        agent = DDQN_Agent()
+        agent = DQN_Agent()
         test_agent( agent, env, model = PRETRAINED_PATH )

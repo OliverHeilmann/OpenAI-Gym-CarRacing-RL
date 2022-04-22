@@ -58,7 +58,7 @@ BATCH_SIZE              = 10        # number for batch fitting
 CONSECUTIVE_NEG_REWARD  = 30        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_650.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_1200.h5"
 TEST                    = True      # true = testing, false = training
 
 
@@ -270,7 +270,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
 
         t1 = time.time()-t1
         run_rewards.append( sum_reward )
-        run_rewards.append( sum_reward )
+        run_rewards.append( t1 )
         
         print("[INFO]: Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
 
