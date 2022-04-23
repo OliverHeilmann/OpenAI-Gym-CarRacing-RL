@@ -57,7 +57,7 @@ CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-122311/episode_600.h5"
+PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-160848/episode_900.h5"
 TEST                    = False      # true = testing, false = training
 
 
@@ -92,7 +92,7 @@ class DQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(81, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 1)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -124,11 +124,28 @@ class DQN_Agent:
             actionIDX =  random.randrange( len(self.action_space) )
         return self.action_space[ actionIDX ]
 
+    def batch_priority( self ):
+        """Implementation of prioritised replay where most recent states take highest priority."""
+        options = list( range(1,len(self.D)+1) )
+        minibatch = []
+        for _ in range( BATCH_SIZE ):
+            # update probs and create new distribution
+            total = len( options ) * (len( options ) + 1) // 2
+            prob_dist = [ i/total for i in range(1, len(options)+1) ]
+
+            choice = np.random.choice( options, 1, p = prob_dist )[0]
+            del options[ options.index(choice) ]
+            minibatch.append( self.D[ choice-1 ] )
+        return minibatch
+
     def experience_replay( self ):
         """Use experience_replay with batch fitting and epsilon decay."""
         if len( self.D ) >= BATCH_SIZE:
-            # batch sample size
-            minibatch = random.sample( self.D, BATCH_SIZE )
+            # batch sample randomly
+            # minibatch = random.sample( self.D, BATCH_SIZE )
+
+            # select batch based on prioritied replay approach
+            minibatch = self.batch_priority()
 
             # experience replay
             train_state = []
@@ -189,7 +206,7 @@ def convert_greyscale( state ):
                                   np.array([150, 150, 150]))  # light_grey
 
     # Create greyscale then normalise array to reduce complexity for neural network
-    gray = cv2.cvtColor( cropped, cv2.COLOR_BGR2GRAY )
+    gray = cv2.cvtColor( state, cv2.COLOR_BGR2GRAY )
     gray = gray.astype(float)
     gray_normalised = gray / 255.0
 
@@ -208,6 +225,7 @@ def convert_greyscale( state ):
 
     # returns [ greyscale image, T/F of if road is visible, is car on grass bool ]
     return [ np.expand_dims( gray_normalised, axis=2 ), np.any(mask== 255), on_grass ]
+
 
 def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
@@ -241,13 +259,16 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
             if repeat_neg_reward >= CONSECUTIVE_NEG_REWARD: break
 
+            # convert to greyscale for NN
+            new_state_grey, can_see_road, car_on_grass = convert_greyscale( new_state_colour )
+
+            # penalise car for being on grass
+            # reward = reward -3 if car_on_grass else reward
+
             # clip reward to 1. Really fast driving would otherwise receive higher reward which
             # is not good for tight turns. Additionally, skipping frames might produce really big
             # rewards as well (x1 tile is ~ 3 pnts so clip 6 is max 2 tiles reward per step).
-            reward = np.clip( reward, a_max=6.0, a_min=-1.0 )
-
-            # convert to greyscale for NN
-            new_state_grey, can_see_road, car_on_grass = convert_greyscale( new_state_colour )
+            reward = np.clip( reward, a_max=1, a_min=-10 )
 
             # store transition states for experience replay
             agent.store_transition( state_grey, action, reward, new_state_grey, done )
@@ -293,6 +314,10 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
 
             # render if user has specified
             if RENDER: env.render()
+
+            # Count number of negative rewards collected sequentially, if reward non-negative, restart counting
+            repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
+            if repeat_neg_reward >= 300: break
 
             # convert to greyscale for NN
             new_state_grey, _, _ = convert_greyscale( new_state_colour )
