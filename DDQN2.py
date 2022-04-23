@@ -1,4 +1,7 @@
 # DDQN version 1 to improve on the performance of DQN2.py
+# Best performance so far:
+#   --> model/oah33/DDQN2/20220423-170444/episode_500.h5
+#   --> NN input is greyscale 96x96x1
 
 # Environment imports
 import random
@@ -57,8 +60,8 @@ CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-160848/episode_900.h5"
-TEST                    = False      # true = testing, false = training
+PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1500.h5"
+TEST                    = True      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
@@ -175,7 +178,7 @@ class DQN_Agent:
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
 
-    def save( self, name, rewards ):
+    def save( self, name, data ):
         """Save model and rewards list to appropriate dir, defined at start of code."""
         # saving model
         if not os.path.exists( MODEL_DIR ):
@@ -185,7 +188,7 @@ class DQN_Agent:
         # saving results
         if not os.path.exists( REWARD_DIR ):
              os.makedirs( REWARD_DIR )
-        np.savetxt(f"{REWARD_DIR}" + name + ".csv", rewards, delimiter=",")
+        np.savetxt(f"{REWARD_DIR}" + name + ".csv", data, delimiter=",")
         
         # plotting results
         if PLOT_RESULTS: plotResults( f"{REWARD_DIR}" + name + ".csv" )
@@ -239,7 +242,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
         sum_reward = 0
         step = 0
         done = False
-        while not done and sum_reward > MAX_PENALTY and can_see_road and not car_on_grass:
+        while not done and sum_reward > MAX_PENALTY and can_see_road:# and not car_on_grass:
             # choose action to take next
             action = agent.choose_action( state_grey )
 
@@ -293,18 +296,19 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     env.close()
 
 
-def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
+def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
     run_rewards = []
-    while True:
+    for test in range(testnum):
         state_colour = env.reset() 
         state_grey, _, _ = convert_greyscale( state_colour )
 
+        done = False
         sum_reward = 0.0
         t1 = time.time()  # Trial timer
-        while sum_reward > MAX_PENALTY:
+        while sum_reward > MAX_PENALTY and not done:
 
             # choose action to take next
             action = agent.choose_action( state_grey, best=True )
@@ -324,14 +328,22 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
 
             # update state
             state_grey = new_state_grey
-
             sum_reward += reward
 
         t1 = time.time()-t1
-        run_rewards.append( sum_reward )
-        run_rewards.append( t1 )
-        
-        print("[INFO]: Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
+        run_rewards.append( [sum_reward, t1] )
+        print(f"[INFO]: Run {test} | Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
+
+    # saving test results
+    if not os.path.exists( f"test_{REWARD_DIR}" ):
+            os.makedirs( f"test_{REWARD_DIR}" )
+    path = f"test_{REWARD_DIR}" +  PRETRAINED_PATH.split('/')[-1][:-3] + "_run_rewards.csv"
+    np.savetxt( path , run_rewards, delimiter=",")
+
+    # Test average score
+    avg_run_reward = np.mean([ i[0] for i in run_rewards ])
+    avg_time = np.mean([ i[1] for i in run_rewards ])
+    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2fs."%avg_run_reward, "| Avg Time:", "%0.2fs."%avg_time )
 
 
 if __name__ == "__main__":
@@ -345,4 +357,4 @@ if __name__ == "__main__":
     else:
         # Test Agent
         agent = DQN_Agent()
-        test_agent( agent, env, model = PRETRAINED_PATH )
+        test_agent( agent, env, model = PRETRAINED_PATH, testnum=50 )

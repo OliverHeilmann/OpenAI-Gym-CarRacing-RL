@@ -34,4 +34,4 @@ def plotResults( filepath ):
 
 
 if __name__ == '__main__':
-    plotResults( filepath = "rewards/oah33/DDQN2/20220423-160848/episode_900.csv" )
+    plotResults( filepath = "rewards/oah33/DDQN2/20220423-170444/episode_1500.csv" )
