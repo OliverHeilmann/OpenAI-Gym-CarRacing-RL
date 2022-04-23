@@ -14,7 +14,7 @@ def simple_moving_avg( data, ticks=75 ):
 
 
 def plotResults( filepath ):
-    data = pd.read_csv(filepath, names=["Reward", "Epsilon"])  
+    data = pd.read_csv(filepath, names=["Reward", "Epsilon", "Run Time"])  
     reward = data["Reward"].to_numpy()
     epsilon = data["Epsilon"].to_numpy()
     episodes = np.array( range(len(reward)))
@@ -27,7 +27,7 @@ def plotResults( filepath ):
     ax1.plot(episodes, sma_reward, 'r-', linewidth=2)
     ax1.set(title='Results from Training', ylabel='Reward')
 
-    ax2.plot(episodes, epsilon, 'r-', linewidth=1)
+    ax2.plot(episodes, epsilon, 'b-', linewidth=1)
     ax2.set(xlabel='Episode', ylabel='Epsilon')
 
     plt.show()

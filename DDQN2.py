@@ -60,7 +60,7 @@ CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1500.h5"
+PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1900.h5"
 TEST                    = True      # true = testing, false = training
 
 
@@ -331,7 +331,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
             sum_reward += reward
 
         t1 = time.time()-t1
-        run_rewards.append( [sum_reward, t1] )
+        run_rewards.append( [sum_reward, np.nan, t1] )
         print(f"[INFO]: Run {test} | Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
 
     # saving test results
