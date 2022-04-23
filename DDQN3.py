@@ -40,7 +40,7 @@ pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "DDQN2"
+MODEL_TYPE              = "DDQN3"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
@@ -54,14 +54,14 @@ EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
-MAX_PENALTY             = -5        # min score before env reset
-BATCH_SIZE              = 10        # number for batch fitting
-CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards before terminating episode
-STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
+MAX_PENALTY             = -35       # min score before env reset
+BATCH_SIZE              = 20        # number for batch fitting
+CONSECUTIVE_NEG_REWARD  = 25        # number of consecutive negative rewards before terminating episode
+STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (steps == states)
 
 # Testing params
 PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1900.h5"
-TEST                    = True      # true = testing, false = training
+TEST                    = False      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
