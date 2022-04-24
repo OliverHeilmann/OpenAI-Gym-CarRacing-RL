@@ -40,7 +40,7 @@ pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "DDQN3"
+MODEL_TYPE              = "DDQN3_NN"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
@@ -54,7 +54,7 @@ EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
-MAX_PENALTY             = -35       # min score before env reset
+MAX_PENALTY             = -30       # min score before env reset
 BATCH_SIZE              = 20        # number for batch fitting
 CONSECUTIVE_NEG_REWARD  = 25        # number of consecutive negative rewards before terminating episode
 STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (steps == states)
@@ -101,7 +101,7 @@ class DQN_Agent:
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Flatten())
         model.add(Dense(216, activation='relu'))
-        # model.add(Dense(54, activation='relu'))
+        model.add(Dense(64, activation='relu'))
         model.add(Dense(len(self.action_space), activation=None))
         model.compile(loss='mean_squared_error', optimizer=Adam(lr=self.learning_rate, epsilon=1e-7))
         return model
@@ -343,7 +343,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     # Test average score
     avg_run_reward = np.mean([ i[0] for i in run_rewards ])
     avg_time = np.mean([ i[1] for i in run_rewards ])
-    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2fs."%avg_run_reward, "| Avg Time:", "%0.2fs."%avg_time )
+    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2f"%avg_run_reward, "| Avg Time:", "%0.2fs"%avg_time )
 
 
 if __name__ == "__main__":

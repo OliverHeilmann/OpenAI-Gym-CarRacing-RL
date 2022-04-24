@@ -60,7 +60,7 @@ CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1900.h5"
+PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_600.h5"
 TEST                    = True      # true = testing, false = training
 
 
@@ -343,7 +343,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     # Test average score
     avg_run_reward = np.mean([ i[0] for i in run_rewards ])
     avg_time = np.mean([ i[1] for i in run_rewards ])
-    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2fs."%avg_run_reward, "| Avg Time:", "%0.2fs."%avg_time )
+    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2f"%avg_run_reward, "| Avg Time:", "%0.2fs"%avg_time )
 
 
 if __name__ == "__main__":
