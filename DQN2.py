@@ -48,7 +48,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = True
+RENDER                  = False
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 25        # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
@@ -58,7 +58,7 @@ BATCH_SIZE              = 10        # number for batch fitting
 CONSECUTIVE_NEG_REWARD  = 30        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_1200.h5"
+PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_1000.h5"
 TEST                    = True      # true = testing, false = training
 
 
@@ -238,18 +238,20 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     env.close()
 
 
-def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
+
+def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
     run_rewards = []
-    while True:
+    for test in range(testnum):
         state_colour = env.reset() 
         state_grey, _ = convert_greyscale( state_colour )
 
+        done = False
         sum_reward = 0.0
         t1 = time.time()  # Trial timer
-        while sum_reward > MAX_PENALTY:
+        while sum_reward > MAX_PENALTY and not done:
 
             # choose action to take next
             action = agent.choose_action( state_grey, best=True )
@@ -260,19 +262,35 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
             # render if user has specified
             if RENDER: env.render()
 
+            # Count number of negative rewards collected sequentially, if reward non-negative, restart counting
+            repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
+            if repeat_neg_reward >= 300: break
+
             # convert to greyscale for NN
             new_state_grey, _ = convert_greyscale( new_state_colour )
 
             # update state
             state_grey = new_state_grey
-
             sum_reward += reward
 
         t1 = time.time()-t1
-        run_rewards.append( sum_reward )
-        run_rewards.append( t1 )
-        
-        print("[INFO]: Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
+        run_rewards.append( [sum_reward, np.nan, t1, np.nan, np.nan, np.nan] )
+        print(f"[INFO]: Run {test} | Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
+
+    # calculate useful statistics
+    rr = [ i[0] for i in run_rewards ]
+    rt = [ i[2] for i in run_rewards ]
+
+    r_max = max(rr)
+    r_min = min(rr)
+    r_std_dev = np.std( rr )
+    r_avg = np.mean(rr)
+    t_avg = np.mean(rt)
+    
+    run_rewards.append( [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev] )    # STORE AVG RESULTS AS LAST ENTRY!
+    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
+            f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
+
 
 
 if __name__ == "__main__":
@@ -286,4 +304,4 @@ if __name__ == "__main__":
     else:
         # Test Agent
         agent = DQN_Agent()
-        test_agent( agent, env, model = PRETRAINED_PATH )
+        test_agent( agent, env, model = PRETRAINED_PATH, testnum=50 )

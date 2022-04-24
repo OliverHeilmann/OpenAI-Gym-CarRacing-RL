@@ -6,6 +6,7 @@ import cv2
 import numpy as np 
 import matplotlib.pyplot as plt
 import gym
+import time, os
 
 def find_error(observation,previous_error):
 
@@ -72,34 +73,61 @@ def pid(error,previous_error):
     return steering
 
 
+def switch():
+    while True:
+        yield 1
+        yield 0
+
+state = switch()
 env = gym.make('CarRacing-v0')
+run_rewards = []
+runs = 50
+for run in range(runs):
 
-observation = env.reset()
+    done = False
+    observation = env.reset()
+    rewardsum = 0
+    previous_error = 0    
 
-rewardsum = 0  
-previous_error = 0    
+    t1 = time.time()  # Trial timer
+    while not done:
+        env.render() 
 
-for x in [1,0]*500:      
+        try: error = find_error(observation,previous_error)
+        except: error = -15
+        steering = pid(error,previous_error)
 
-    env.render() 
-  
-    try:
-        error = find_error(observation,previous_error)
-    except:
-        error = -15
-        print("error")
-        pass
+        action = (steering,next(state),0)
+        observation, reward, done, info = env.step(action)
 
-    steering = pid(error,previous_error)
+        # Count number of negative rewards collected sequentially, if reward non-negative, restart counting
+        repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
+        if repeat_neg_reward >= 300: break
 
-    action = (steering,x,0)
+        previous_error =error
+        rewardsum = rewardsum +reward
 
-    observation, reward, done, info = env.step(action)
-    previous_error =error
-    rewardsum = rewardsum +reward
+    t1 = time.time()-t1
+    print( f"Run: {run} | Reward: {rewardsum}" )
+    run_rewards.append( [rewardsum, np.nan, t1, np.nan, np.nan, np.nan] )
+env.close()
 
-    if done :
-        env.close()
-        break
-    
-print("reward", rewardsum)
+# calculate useful statistics
+rr = [ i[0] for i in run_rewards ]
+rt = [ i[2] for i in run_rewards ]
+
+r_max = max(rr)
+r_min = min(rr)
+r_std_dev = np.std( rr )
+r_avg = np.mean(rr)
+t_avg = np.mean(rt)
+
+run_rewards.append( [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev] )    # STORE AVG RESULTS AS LAST ENTRY!
+print(f"[INFO]: Runs {run} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
+        f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
+
+# saving test results
+if not os.path.exists( f"test_rewards/oah33/PID/" ):
+        os.makedirs( f"test_rewards/oah33/PID/" )
+path = f"test_rewards/oah33/PID/" + "run_rewards.csv"
+np.savetxt( path , run_rewards, delimiter=",")

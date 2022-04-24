@@ -1,6 +1,19 @@
 # Code Description
 WIP
 
+# Testing Results
+| Method                                                                                            | Average Reward (across 50 runs) | Max  | Min  | Standard Deviation |
+|---------------------------------------------------------------------------------------------------|---------------------------------|------|------|--------------------|
+| Human                                                                                             |             770.75              |824.09|683.29|       45.28        | 
+| PID                                                                                               |             680.98              |805.45|446.62|       90.22        | 
+| DQN with Experience Replay and Fixed Target Network                                               |             385.06              |841.28| 43.28|       251.37       | 
+| Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping (DDQN1)   |             730.88              |870.65|101.22|       216.13       | 
+| Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping* (DDQN2)  |             899.49              |919.69|817.27|       231.93       | 
+
+
+*One dense layer more and more _"lenient episode termination"_ (meaning the car can drive on the grass for longer before terminating episode)
+
+
 # Building Conda Env on Local Machine
 A yml script has been created to help with building your anaconda environment. Simply run the command below in terminal (which supports anaconda). Environment name can be changed from SERVER_ENV to user choice inside yml file.
 ```shell

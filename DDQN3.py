@@ -48,7 +48,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = True
+RENDER                  = False
 PLOT_RESULTS            = False     # plotting reward and epsilon vs epsiode (graphically) NOTE: THIS WILL PAUSE TRAINING AT PLOT EPISODE!
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
@@ -60,8 +60,8 @@ CONSECUTIVE_NEG_REWARD  = 25        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1900.h5"
-TEST                    = False      # true = testing, false = training
+PRETRAINED_PATH         = "/Users/Oliver/Downloads/episode_900.h5"
+TEST                    = True      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
@@ -331,19 +331,28 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
             sum_reward += reward
 
         t1 = time.time()-t1
-        run_rewards.append( [sum_reward, np.nan, t1] )
+        run_rewards.append( [sum_reward, np.nan, t1, np.nan, np.nan, np.nan] )
         print(f"[INFO]: Run {test} | Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
+
+    # calculate useful statistics
+    rr = [ i[0] for i in run_rewards ]
+    rt = [ i[2] for i in run_rewards ]
+
+    r_max = max(rr)
+    r_min = min(rr)
+    r_std_dev = np.std( rr )
+    r_avg = np.mean(rr)
+    t_avg = np.mean(rt)
+    
+    run_rewards.append( [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev] )    # STORE AVG RESULTS AS LAST ENTRY!
+    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
+            f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
 
     # saving test results
     if not os.path.exists( f"test_{REWARD_DIR}" ):
             os.makedirs( f"test_{REWARD_DIR}" )
     path = f"test_{REWARD_DIR}" +  PRETRAINED_PATH.split('/')[-1][:-3] + "_run_rewards.csv"
     np.savetxt( path , run_rewards, delimiter=",")
-
-    # Test average score
-    avg_run_reward = np.mean([ i[0] for i in run_rewards ])
-    avg_time = np.mean([ i[1] for i in run_rewards ])
-    print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2f"%avg_run_reward, "| Avg Time:", "%0.2fs"%avg_time )
 
 
 if __name__ == "__main__":

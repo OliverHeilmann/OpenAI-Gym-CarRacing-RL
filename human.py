@@ -56,12 +56,17 @@ def run_carRacing_asHuman(policy=None, record_video=False):
             if done or restart:
                 t1 = time.time()-t1
                 scores.append(total_reward)
-                scores.append(total_reward)
                 print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs."% t1)
                 break
         if not bool_do_not_quit:
-            scores.append(total_reward)
             print("Trial", len(scores), "| Score:", total_reward, '|', steps, "steps | %0.2fs."% t1)
     env.close()
+
+    r_max = max( scores )
+    r_min = min( scores )
+    r_std_dev = np.std( scores )
+    r_avg = np.mean( scores )
+
+    print(f"[INFO]: Avg Run Reward: ", "%0.2f"%r_avg, f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
 
 run_carRacing_asHuman()  # Run with human keyboard input

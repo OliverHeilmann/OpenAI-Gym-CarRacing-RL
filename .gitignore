@@ -13,4 +13,4 @@ dep
 *.idea/
 model
 rewards
-test_rewards
+test_rewards*
