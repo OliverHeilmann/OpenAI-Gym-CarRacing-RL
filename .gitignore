@@ -14,3 +14,4 @@ dep
 model
 rewards
 test_rewards*
+episode_test_runs

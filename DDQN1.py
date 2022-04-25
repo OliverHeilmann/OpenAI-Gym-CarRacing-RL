@@ -59,7 +59,7 @@ TEST                    = False      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
-class DQN_Agent:
+class DDQN_Agent:
     def __init__(   self, 
                     action_space    = [
                     (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #           Action Space Structure
@@ -183,7 +183,7 @@ def convert_greyscale( state ):
     # returns [ greyscale image, T/F of if road is visible ]
     return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
 
-def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
+def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
     episode_rewards = []
     for episode in tqdm( range(episodes) ):
@@ -241,7 +241,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     env.close()
 
 
-def test_agent( agent : DQN_Agent, env : gym.make, model : str ):
+def test_agent( agent : DDQN_Agent, env : gym.make, model : str ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
@@ -283,10 +283,10 @@ if __name__ == "__main__":
 
     if not TEST:
         # Train Agent
-        agent = DQN_Agent()
+        agent = DDQN_Agent()
         train_agent( agent, env, episodes = EPISODES )
     
     else:
         # Test Agent
-        agent = DQN_Agent()
+        agent = DDQN_Agent()
         test_agent( agent, env, model = PRETRAINED_PATH )

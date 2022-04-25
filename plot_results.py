@@ -50,6 +50,7 @@ if __name__ == '__main__':
                 "rewards/oah33/DDQN1/20220422-190009/episode_300.csv",
                 "rewards/oah33/DDQN2/20220423-122311/episode_1900.csv",
                 "rewards/oah33/DDQN2/20220423-170444/episode_1900.csv",
+                "rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv"
             ]
 
     plotResults( filepaths = paths)

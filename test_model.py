@@ -1,0 +1,130 @@
+# Test multiple agent models at once and store results in csv file format
+
+# Environment imports
+import numpy as np
+import gym
+
+# Training monitoring imports
+import datetime, os
+from tqdm import tqdm
+import time
+
+
+############################## SERVER CONFIGURATION ##################################
+# Where are models saved? How frequently e.g. every x1 episode?
+USERNAME                = "oah33"
+MODEL_TYPE              = "DDQN3_NN"
+TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+# Setup Reward Dir
+REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
+
+# Training params
+RENDER                  = True
+MAX_PENALTY             = -30       # min score before env reset
+
+
+def test_agent( name : str, AgentClass, togray,  env : gym.make, model : list, testnum=10 ):
+    """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
+    # initialize the class
+    agent = AgentClass()
+
+    # Load agent model
+    agent.load( model )
+    run_rewards = []
+    for test in range(testnum):
+        state_colour = env.reset() 
+        state_grey, _, _ = togray( state_colour )
+
+        done = False
+        sum_reward = 0.0
+        t1 = time.time()  # Trial timer
+        while sum_reward > MAX_PENALTY and not done:
+
+            # choose action to take next
+            action = agent.choose_action( state_grey, best=True )
+            
+            # take action and observe new state, reward and if terminal
+            new_state_colour, reward, done, _ = env.step( action )
+
+            # render if user has specified
+            if RENDER: env.render()
+
+            # Count number of negative rewards collected sequentially, if reward non-negative, restart counting
+            repeat_neg_reward = repeat_neg_reward+1 if reward < 0 else 0
+            if repeat_neg_reward >= 300: break
+
+            # convert to greyscale for NN
+            new_state_grey, _, _ = togray( new_state_colour )
+
+            # update state
+            state_grey = new_state_grey
+            sum_reward += reward
+
+        t1 = time.time()-t1
+        run_rewards.append( [sum_reward, np.nan, t1, np.nan, np.nan, np.nan] )
+        print(f"[INFO]: Agent | {name} | Run {test} | Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
+
+    # calculate useful statistics
+    rr = [ i[0] for i in run_rewards ]
+    rt = [ i[2] for i in run_rewards ]
+
+    r_max = max(rr)
+    r_min = min(rr)
+    r_std_dev = np.std( rr )
+    r_avg = np.mean(rr)
+    t_avg = np.mean(rt)
+    
+    run_rewards.append( [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev] )    # STORE AVG RESULTS AS LAST ENTRY!
+    print(f"[INFO]: Agent | {name} | Runs {testnum} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
+            f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
+
+    # return average results
+    return [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev]
+
+
+if __name__ == "__main__":
+    # Import agents
+    from DQN2 import DQN_Agent as DQN_Agent2
+    from DQN2 import convert_greyscale as DQN2_convert_greyscale
+
+    from DDQN1 import DDQN_Agent as DDQN_Agent1
+    from DDQN1 import convert_greyscale as DDQN1_convert_greyscale
+
+    from DDQN2 import DDQN_Agent as DDQN_Agent2
+    from DDQN2 import convert_greyscale as DDQN2_convert_greyscale
+
+    from DDQN3 import DDQN_Agent as DDQN_Agent3
+    from DDQN3 import convert_greyscale as DDQN3_convert_greyscale
+
+    agents_functs_folders = [   ["DQN2", DQN_Agent2, DQN2_convert_greyscale, "model/oah33/DQN2/20220422-164216"],
+                                ["DDQN1", DDQN_Agent1, DDQN1_convert_greyscale, "model/oah33/DDQN1/20220422-190009"],
+                                ["DDQN2", DDQN_Agent2, DDQN2_convert_greyscale, "model/oah33/DDQN2/20220423-122311"],
+                                ["DDQN2", DDQN_Agent2, DDQN2_convert_greyscale, "model/oah33/DDQN2/20220423-170444"]
+                                ["DDQN3", DDQN_Agent3, DDQN3_convert_greyscale, "model/oah33/DDQN3_NN/20220424-140943"],
+                            ]
+
+    env = gym.make('CarRacing-v0').env
+    for name, agent, grayscale_funct, folder in agents_functs_folders:
+        avg_runs = []
+        for curr_model in os.listdir( folder ):
+
+            # perform agent model testing
+            r_avg, _, t_avg, r_max, r_min, r_std_dev = test_agent(  name=name,
+                                                                    AgentClass=agent,
+                                                                    togray=grayscale_funct,
+                                                                    env=env,
+                                                                    model = folder + "/" + curr_model,
+                                                                    testnum=1 
+                                                                 )
+
+            # append results to array
+            avg_runs.append( [r_avg, _, t_avg, r_max, r_min, r_std_dev] )
+
+        # saving test results
+        if not os.path.exists( f"episode_test_runs/{USERNAME}/{TIMESTAMP}/{name}/" ):
+                os.makedirs( f"episode_test_runs/{USERNAME}/{TIMESTAMP}/{name}/" )
+        path = f"episode_test_runs/{USERNAME}/{TIMESTAMP}/{name}/episode_run_rewards.csv"
+        np.savetxt( path , avg_runs, delimiter=",")
+
+    print("[SUCCESS]: Testing Done!!")

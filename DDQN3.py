@@ -48,7 +48,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
+RENDER                  = True
 PLOT_RESULTS            = False     # plotting reward and epsilon vs epsiode (graphically) NOTE: THIS WILL PAUSE TRAINING AT PLOT EPISODE!
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
@@ -65,7 +65,7 @@ TEST                    = True      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
-class DQN_Agent:
+class DDQN_Agent:
     def __init__(   self, 
                     action_space    = [
                     (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #            Action Space Structure
@@ -230,7 +230,7 @@ def convert_greyscale( state ):
     return [ np.expand_dims( gray_normalised, axis=2 ), np.any(mask== 255), on_grass ]
 
 
-def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
+def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
     episode_rewards = []
     for episode in tqdm( range(episodes) ):
@@ -296,7 +296,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     env.close()
 
 
-def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
+def test_agent( agent : DDQN_Agent, env : gym.make, model : str, testnum=10 ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
@@ -354,16 +354,19 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     path = f"test_{REWARD_DIR}" +  PRETRAINED_PATH.split('/')[-1][:-3] + "_run_rewards.csv"
     np.savetxt( path , run_rewards, delimiter=",")
 
+    # return average results
+    return [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev]
+
 
 if __name__ == "__main__":
     env = gym.make('CarRacing-v0').env
 
     if not TEST:
         # Train Agent
-        agent = DQN_Agent()
+        agent = DDQN_Agent()
         train_agent( agent, env, episodes = EPISODES )
     
     else:
         # Test Agent
-        agent = DQN_Agent()
+        agent = DDQN_Agent()
         test_agent( agent, env, model = PRETRAINED_PATH, testnum=50 )

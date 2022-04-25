@@ -178,7 +178,7 @@ def convert_greyscale( state ):
 
     # returns [ greyscale image, T/F of if road is visible ]
     # return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
-    return [ state, np.any(mask== 255) ]
+    return [ state, np.any(mask== 255), np.nan ]
 
 def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
@@ -187,7 +187,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
         print( f"[INFO]: Starting Episode {episode}" )
         
         state_colour = env.reset() 
-        state_grey, can_see_road = convert_greyscale( state_colour )
+        state_grey, can_see_road, _ = convert_greyscale( state_colour )
 
         sum_reward = 0
         step = 0
@@ -213,7 +213,7 @@ def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
             if repeat_neg_reward >= CONSECUTIVE_NEG_REWARD: break
 
             # convert to greyscale for NN
-            new_state_grey, can_see_road = convert_greyscale( new_state_colour )
+            new_state_grey, can_see_road, _ = convert_greyscale( new_state_colour )
 
             # store transition states for experience replay
             agent.store_transition( state_grey, action, reward, new_state_grey, done )
@@ -246,7 +246,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     run_rewards = []
     for test in range(testnum):
         state_colour = env.reset() 
-        state_grey, _ = convert_greyscale( state_colour )
+        state_grey, _, _ = convert_greyscale( state_colour )
 
         done = False
         sum_reward = 0.0
@@ -267,7 +267,7 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
             if repeat_neg_reward >= 300: break
 
             # convert to greyscale for NN
-            new_state_grey, _ = convert_greyscale( new_state_colour )
+            new_state_grey, _, _ = convert_greyscale( new_state_colour )
 
             # update state
             state_grey = new_state_grey
@@ -290,6 +290,15 @@ def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     run_rewards.append( [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev] )    # STORE AVG RESULTS AS LAST ENTRY!
     print(f"[INFO]: Runs {testnum} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
             f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
+
+    # saving test results
+    if not os.path.exists( f"test_{REWARD_DIR}" ):
+            os.makedirs( f"test_{REWARD_DIR}" )
+    path = f"test_{REWARD_DIR}" +  PRETRAINED_PATH.split('/')[-1][:-3] + "_run_rewards.csv"
+    np.savetxt( path , run_rewards, delimiter=",")
+
+    # return average results
+    return [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev]
 
 
 
