@@ -48,7 +48,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
+RENDER                  = True
 PLOT_RESULTS            = False     # plotting reward and epsilon vs epsiode (graphically) NOTE: THIS WILL PAUSE TRAINING AT PLOT EPISODE!
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
@@ -60,7 +60,7 @@ CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_800.h5"
+PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1500.h5"
 TEST                    = True      # true = testing, false = training
 
 

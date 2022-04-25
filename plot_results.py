@@ -43,8 +43,9 @@ def plotResults( filepaths ):
         # now get data for plot 3s
         data3 = pd.read_csv(mpath, names=["Episode", "Avg Reward", "Epsilon", "Avg Time", "Max", "Min", "Std Dev"])  
         ax3.plot(data3["Episode"], data3["Avg Reward"], '-', linewidth=1)
-        ax3.set(title=f'Testing Reward Against Episode', xlabel='Episode [unit]', ylabel='Avg Reward (10 Runs)')
-
+        ax3.set(title=f'Testing Reward Against Episode', xlabel='Episode', ylabel='Avg Reward (10 Runs)')
+    
+    fig.tight_layout()  # add padding between figs
     plt.legend( labels )
     plt.show()
 

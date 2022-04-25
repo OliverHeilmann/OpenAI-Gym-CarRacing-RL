@@ -60,7 +60,7 @@ CONSECUTIVE_NEG_REWARD  = 25        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "/Users/Oliver/Downloads/episode_900.h5"
+PRETRAINED_PATH         = "model/oah33/DDQN3_NN/20220424-140943/episode_900.h5"
 TEST                    = True      # true = testing, false = training
 
 
