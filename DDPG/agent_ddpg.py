@@ -90,6 +90,7 @@ class AgentDDPG:
         self.target_critic.set_weights(self.critic.get_weights())
 
     def get_action(self, state, add_noise=True):
+        added_noise = 0
         prep_state = self.preprocess(state)
         if self.actor is None:
             self.init_networks(prep_state.shape)
@@ -100,7 +101,8 @@ class AgentDDPG:
 
         # if asked, add noise to the action taken
         if add_noise:
-            actor_output = actor_output[0] + self.noise.generate()
+            added_noise = self.noise.generate()
+            actor_output = actor_output[0] + added_noise
         else:
             actor_output = actor_output[0]
 
@@ -111,7 +113,7 @@ class AgentDDPG:
 
         # Clip min-max
         env_action = np.clip(np.array(env_action), a_min=self.action_space.low, a_max=self.action_space.high)
-        return env_action, actor_output
+        return env_action, actor_output, added_noise
 
     def decode_model_output(self, model_out):
         return np.array([model_out[0], model_out[1].clip(0, 1), -model_out[1].clip(-1, 0)])

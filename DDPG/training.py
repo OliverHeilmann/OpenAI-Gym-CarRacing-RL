@@ -4,6 +4,7 @@ Here a problem and a solution are defined.
 """
 
 import gym
+import datetime, os
 from pyglet.window import key
 import numpy as np
 
@@ -26,11 +27,17 @@ def key_release(k, mod):
 
 # Parameters
 num_episodes = 1000
+USERNAME = 'HADI'
+TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+REWARD_DIR              = f"rewards/{USERNAME}/{TIMESTAMP}/"
+
+SAVE_TRAINING_FREQUENCY = 100
 
 gym.logger.set_level(40)
 preview = False
 best_result = 0
 all_episode_reward = []
+data = []
 
 # Initialize simulation
 env = gym.make('CarRacing-v0')
@@ -44,18 +51,21 @@ agent = AgentDDPG(env.action_space, model_outputs=2, noise_std=noise_std)
 
 # Loop of episodes
 for ep in range(num_episodes):
+
     state = env.reset()
     agent.reset()
     done = False
     episode_reward = 0
     out_of_track = 0
-
+    # added epsilon variable to match the data saved with other models
+    epsilon = np.nan
+    added_noise = 0
     # One-step-loop
     while not done:
         if preview:
             env.render()
 
-        action, train_action = agent.get_action(state)
+        action, train_action, added_noise = agent.get_action(state)
 
         # This will make steering much easier
         action /= 4
@@ -74,6 +84,11 @@ for ep in range(num_episodes):
             out_of_track = 0
 
     all_episode_reward.append(episode_reward)
+    data.append([episode_reward, added_noise[0], added_noise[1], epsilon])
+
+    if ep % SAVE_TRAINING_FREQUENCY == 0:
+        save_result_to_csv(f"episode_{ep}",data,REWARD_DIR)
+
     average_result = np.array(all_episode_reward[-100:]).mean()
     print('Episode ', ep, ' result:', episode_reward, '..last 100 Average results:', average_result)
 
@@ -82,5 +97,5 @@ for ep in range(num_episodes):
         agent.save_solution()
         best_result = episode_reward
 
-episode_indices = [i+1 for i in range(num_episodes)]
+episode_indices = [i + 1 for i in range(num_episodes)]
 plot_learning_curve(episode_indices, all_episode_reward, 'ddpg.png')

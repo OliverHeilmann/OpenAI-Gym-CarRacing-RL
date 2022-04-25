@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
 
 # This noise generator was taken from a source
 class NoiseGenerator:
@@ -56,3 +58,9 @@ def plot_learning_curve(x, scores, figure_file):
     plt.plot(x, running_avg)
     plt.title('Running average of previous 100 rewards')
     plt.savefig(figure_file)
+
+
+def save_result_to_csv(name, data, path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    np.savetxt(f"{path}" + name + ".csv", data, delimiter=",")
