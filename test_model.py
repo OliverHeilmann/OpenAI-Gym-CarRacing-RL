@@ -13,14 +13,10 @@ import time
 ############################## SERVER CONFIGURATION ##################################
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "DDQN3_NN"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
-# Setup Reward Dir
-REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
-
 # Training params
-RENDER                  = True
+RENDER                  = False
 MAX_PENALTY             = -30       # min score before env reset
 
 
@@ -28,6 +24,8 @@ def test_agent( name : str, AgentClass, togray,  env : gym.make, model : list, t
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # initialize the class
     agent = AgentClass()
+    model_ep = int(model.split('/')[-1][:-3].split("_")[-1])
+
 
     # Load agent model
     agent.load( model )
@@ -63,7 +61,6 @@ def test_agent( name : str, AgentClass, togray,  env : gym.make, model : list, t
 
         t1 = time.time()-t1
         run_rewards.append( [sum_reward, np.nan, t1, np.nan, np.nan, np.nan] )
-        print(f"[INFO]: Agent | {name} | Run {test} | Run Reward: ", sum_reward, " | Time:", "%0.2fs."%t1 )
 
     # calculate useful statistics
     rr = [ i[0] for i in run_rewards ]
@@ -75,8 +72,7 @@ def test_agent( name : str, AgentClass, togray,  env : gym.make, model : list, t
     r_avg = np.mean(rr)
     t_avg = np.mean(rt)
     
-    run_rewards.append( [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev] )    # STORE AVG RESULTS AS LAST ENTRY!
-    print(f"[INFO]: Agent | {name} | Runs {testnum} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
+    print(f"[INFO]: Agent | {name} | Episode: {model_ep} | Runs {testnum} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%0.2fs"%t_avg,
             f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
 
     # return average results
@@ -98,16 +94,18 @@ if __name__ == "__main__":
     from DDQN3 import convert_greyscale as DDQN3_convert_greyscale
 
     agents_functs_folders = [   ["DQN2", DQN_Agent2, DQN2_convert_greyscale, "model/oah33/DQN2/20220422-164216"],
-                                ["DDQN1", DDQN_Agent1, DDQN1_convert_greyscale, "model/oah33/DDQN1/20220422-190009"],
-                                ["DDQN2", DDQN_Agent2, DDQN2_convert_greyscale, "model/oah33/DDQN2/20220423-122311"],
-                                ["DDQN2", DDQN_Agent2, DDQN2_convert_greyscale, "model/oah33/DDQN2/20220423-170444"]
-                                ["DDQN3", DDQN_Agent3, DDQN3_convert_greyscale, "model/oah33/DDQN3_NN/20220424-140943"],
+                                # ["DDQN1", DDQN_Agent1, DDQN1_convert_greyscale, "model/oah33/DDQN1/20220422-190009"],
+                                ["DDQN2_T1", DDQN_Agent2, DDQN2_convert_greyscale, "model/oah33/DDQN2/20220423-122311"],
+                                ["DDQN2_T2", DDQN_Agent2, DDQN2_convert_greyscale, "model/oah33/DDQN2/20220423-170444"],
+                                ["DDQN3_NN", DDQN_Agent3, DDQN3_convert_greyscale, "model/oah33/DDQN3_NN/20220424-140943"],
                             ]
 
     env = gym.make('CarRacing-v0').env
     for name, agent, grayscale_funct, folder in agents_functs_folders:
+        print("\n\n [INFO]: NEW MODEL TYPE!")
         avg_runs = []
         for curr_model in os.listdir( folder ):
+            print("\n\n [INFO]: NEW EPISODE!")
 
             # perform agent model testing
             r_avg, _, t_avg, r_max, r_min, r_std_dev = test_agent(  name=name,
@@ -115,11 +113,15 @@ if __name__ == "__main__":
                                                                     togray=grayscale_funct,
                                                                     env=env,
                                                                     model = folder + "/" + curr_model,
-                                                                    testnum=1 
+                                                                    testnum=50 
                                                                  )
 
             # append results to array
-            avg_runs.append( [r_avg, _, t_avg, r_max, r_min, r_std_dev] )
+            episode = int(curr_model.split("_")[1][:-3])
+            avg_runs.append( [episode, r_avg, _, t_avg, r_max, r_min, r_std_dev] )
+
+        # sort list into numerical order (ascending)
+        avg_runs.sort(key=lambda x: x[0])
 
         # saving test results
         if not os.path.exists( f"episode_test_runs/{USERNAME}/{TIMESTAMP}/{name}/" ):

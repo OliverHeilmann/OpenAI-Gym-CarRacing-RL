@@ -10,6 +10,8 @@ WIP
 | Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping (DDQN1)   |             730.88              |870.65|101.22|       216.13       | 
 | Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping* (DDQN2)  |             899.49              |919.69|817.27|       231.93       | 
 
+![DQN, DDQN](/imgs/ddqn_results.png "Discrete Action Space RL Approaches")
+
 
 *One dense layer more and more _"lenient episode termination"_ (meaning the car can drive on the grass for longer before terminating episode)
 
