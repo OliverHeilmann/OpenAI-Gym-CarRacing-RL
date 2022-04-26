@@ -43,10 +43,10 @@ def plotResults( filepaths ):
         # now get data for plot 3s
         data3 = pd.read_csv(mpath, names=["Episode", "Avg Reward", "Epsilon", "Avg Time", "Max", "Min", "Std Dev"])  
         ax3.plot(data3["Episode"], data3["Avg Reward"], '-', linewidth=1)
-        ax3.set(title=f'Testing Reward Against Episode', xlabel='Episode', ylabel='Avg Reward (10 Runs)')
+        ax3.set(title=f'Testing Reward Against Episode', xlabel='Episode', ylabel='Avg Reward (50 Runs)')
     
     fig.tight_layout()  # add padding between figs
-    plt.legend( labels )
+    ax1.legend( labels )
     plt.show()
 
 
@@ -60,11 +60,11 @@ if __name__ == '__main__':
                             "rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv"
                         ]
 
-    model_rewards = [   "episode_test_runs/oah33/20220425-170036/DQN2/episode_run_rewards.csv",
+    model_rewards = [   "episode_test_runs/oah33/20220425-202418/DQN2/episode_run_rewards.csv",
                         # "episode_test_runs/oah33/20220425-170036/DDQN1/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-170036/DDQN2_T1/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-170036/DDQN2_T2/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-170036/DDQN3_NN/episode_run_rewards.csv",
+                        "episode_test_runs/oah33/20220425-202418/DDQN2_T1/episode_run_rewards.csv",
+                        "episode_test_runs/oah33/20220425-202418/DDQN2_T2/episode_run_rewards.csv",
+                        "episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
                     ]
     filepaths = [ [training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]
     plotResults( filepaths = filepaths )

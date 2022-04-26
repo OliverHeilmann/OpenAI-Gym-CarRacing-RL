@@ -147,6 +147,7 @@ hare exec <container name> tensorboard --logdir logs/fit --port=80 --host=0.0.0.
 hare run -p 10000:80 --gpus device=0 --rm -v "$(pwd)":/code oah33/docker_rl
 hare exec agitated_elion python3 /code/tensorboard_test.py
 
+nvidia-smi
 ```
 
 # Notes
