@@ -127,7 +127,7 @@ print(f"[INFO]: Runs {run} | Avg Run Reward: ", "%0.2f"%r_avg, "| Avg Time:", "%
         f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}" )
 
 # saving test results
-if not os.path.exists( f"test_rewards/oah33/PID/" ):
-        os.makedirs( f"test_rewards/oah33/PID/" )
-path = f"test_rewards/oah33/PID/" + "run_rewards.csv"
+if not os.path.exists( f"PID/test_rewards/oah33/PID/" ):
+        os.makedirs( f"PID/test_rewards/oah33/PID/" )
+path = f"PID/test_rewards/oah33/PID/" + "run_rewards.csv"
 np.savetxt( path , run_rewards, delimiter=",")

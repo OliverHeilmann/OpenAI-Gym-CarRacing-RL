@@ -64,20 +64,20 @@ def plotResults( filepaths ):
 if __name__ == '__main__':
 
     # MUST BE SAME LENGTH!
-    training_rewards = [   "rewards/oah33/DQN2/20220422-164216/episode_1200.csv",
-                            # "rewards/oah33/DDQN1/20220422-190009/episode_300.csv",
-                            "rewards/oah33/DDQN2/20220423-122311/episode_1900.csv",
-                            "rewards/oah33/DDQN2/20220423-170444/episode_1900.csv",
-                            "rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv",
-                            "rewards/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_300.csv"
+    training_rewards = [   "DDQN/rewards/oah33/DQN2/20220422-164216/episode_1200.csv",
+                            # "DDQN/rewards/oah33/DDQN1/20220422-190009/episode_300.csv",
+                            "DDQN/rewards/oah33/DDQN2/20220423-122311/episode_1900.csv",
+                            "DDQN/rewards/oah33/DDQN2/20220423-170444/episode_1900.csv",
+                            "DDQN/rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv",
+                            # "DDQN/rewards/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_500.csv"
                         ]
 
-    model_rewards = [   "episode_test_runs/oah33/20220425-202418/DQN2/episode_run_rewards.csv",
-                        # "episode_test_runs/oah33/20220425-170036/DDQN1/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-202418/DDQN2_T1/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-202418/DDQN2_T2/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
-                        "episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv"
+    model_rewards = [   "DDQN/episode_test_runs/oah33/20220425-202418/DQN2/episode_run_rewards.csv",
+                        # "DDQN/episode_test_runs/oah33/20220425-170036/DDQN1/episode_run_rewards.csv",
+                        "DDQN/episode_test_runs/oah33/20220425-202418/DDQN2_T1/episode_run_rewards.csv",
+                        "DDQN/episode_test_runs/oah33/20220425-202418/DDQN2_T2/episode_run_rewards.csv",
+                        "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
+                        # "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv"
                     ]
     filepaths = [ [training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]
     plotResults( filepaths = filepaths )

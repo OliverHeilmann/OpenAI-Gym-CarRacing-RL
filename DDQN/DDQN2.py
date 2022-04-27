@@ -28,7 +28,7 @@ import time
 from plot_results import plotResults
 
 
-############################## SERVER CONFIGURATION ##################################
+############################## CONFIGURATION ##################################
 # Prevent tensorflow from allocating the all of GPU memory
 # From: https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
 GPUs = tf.config.experimental.list_physical_devices('GPU')
@@ -60,7 +60,7 @@ CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards bef
 STEPS_ON_GRASS          = 5         # How many steps can car be on grass for (steps == states)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN2/20220423-170444/episode_1500.h5"
+PRETRAINED_PATH         = "DDQN/model/oah33/DDQN2/20220423-170444/episode_1500.h5"
 TEST                    = True      # true = testing, false = training
 
 

@@ -1,7 +1,8 @@
-# DDQN version 1 to improve on the performance of DQN2.py
-# Best performance so far:
-#   --> model/oah33/DDQN2/20220423-170444/episode_500.h5
-#   --> NN input is greyscale 96x96x1
+# DQN version 2 to improve on the performance of DQN1.py
+# Changes:
+# 1. ...
+# 2. ...
+# 3. ...
 
 # Environment imports
 import random
@@ -25,10 +26,9 @@ tf.compat.v1.disable_eager_execution()
 import datetime, os
 from tqdm import tqdm
 import time
-from plot_results import plotResults
 
 
-############################## SERVER CONFIGURATION ##################################
+############################## CONFIGURATION ##################################
 # Prevent tensorflow from allocating the all of GPU memory
 # From: https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
 GPUs = tf.config.experimental.list_physical_devices('GPU')
@@ -40,7 +40,7 @@ pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "Random"
+MODEL_TYPE              = "DQN2"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
@@ -49,30 +49,29 @@ REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
 RENDER                  = True
-PLOT_RESULTS            = False     # plotting reward and epsilon vs epsiode (graphically) NOTE: THIS WILL PAUSE TRAINING AT PLOT EPISODE!
 EPISODES                = 2000      # training episodes
-SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
+SAVE_TRAINING_FREQUENCY = 25        # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
 TARGET_UPDATE_STEPS     = 5         # update target action value network every n EPISODES
-MAX_PENALTY             = -30       # min score before env reset
-BATCH_SIZE              = 20        # number for batch fitting
-CONSECUTIVE_NEG_REWARD  = 25        # number of consecutive negative rewards before terminating episode
-STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (steps == states)
-REPLAY_BUFFER_MAX_SIZE  = 150000    # threshold memory limit for replay buffer (old version was 10000)
+MAX_PENALTY             = -5        # min score before env reset
+BATCH_SIZE              = 10        # number for batch fitting
+CONSECUTIVE_NEG_REWARD  = 30        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_300.h5"
+PRETRAINED_PATH         = "DDQN/model/oah33/DQN2/20220422-164216/episode_1000.h5"
 TEST                    = True      # true = testing, false = training
 
 
 ############################## MAIN CODE BODY ##################################
-class DDQN_Agent:
+class DQN_Agent:
     def __init__(   self, 
                     action_space    = [
-                    (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #            Action Space Structure
+                    (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #           Action Space Structure
                     (-1, 1,   0), (0, 1,   0), (1, 1,   0), #           (Steering, Gas, Break)
                     (-1, 0, 0.2), (0, 0, 0.2), (1, 0, 0.2), # Range       -1~1     0~`1`   0~1
-                    (-1, 0,   0), (0, 0,   0), (1, 0,   0)],  
+                    (-1, 0,   0), (0, 0,   0), (1, 0,   0)
+                    ],
+                    memory_size     = 10000,     # threshold memory limit for replay buffer
                     gamma           = 0.95,      # discount rate
                     epsilon         = 1.0,       # exploration rate
                     epsilon_min     = 0.1,       # used by Atari
@@ -81,7 +80,7 @@ class DDQN_Agent:
                 ):
         
         self.action_space    = action_space
-        self.D               = deque( maxlen=REPLAY_BUFFER_MAX_SIZE )
+        self.D               = deque( maxlen=memory_size )
         self.gamma           = gamma
         self.epsilon         = epsilon
         self.epsilon_min     = epsilon_min
@@ -95,13 +94,13 @@ class DDQN_Agent:
     def build_model( self ):
         """Sequential Neural Net with x2 Conv layers, x2 Dense layers using RELU and Huber Loss"""
         model = Sequential()
-        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 1)))
+        model.add(Conv2D(filters=6, kernel_size=(7, 7), strides=3, activation='relu', input_shape=(96, 96, 3)))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Conv2D(filters=12, kernel_size=(4, 4), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Flatten())
         model.add(Dense(216, activation='relu'))
-        model.add(Dense(64, activation='relu'))
+        # model.add(Dense(54, activation='relu'))
         model.add(Dense(len(self.action_space), activation=None))
         model.compile(loss='mean_squared_error', optimizer=Adam(lr=self.learning_rate, epsilon=1e-7))
         return model
@@ -114,8 +113,7 @@ class DDQN_Agent:
         """Store transition in the replay memory (for replay buffer)."""
         self.D.append( (state, action, reward, new_state, done) )
 
-
-    def choose_action( self, state, best=False, _random=False):
+    def choose_action( self, state, best=False):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
         state = np.expand_dims(state, axis=0)
         actionIDX = np.argmax( self.model.predict(state)[0] )
@@ -123,36 +121,16 @@ class DDQN_Agent:
         # return best action if defined
         if best: return self.action_space[ actionIDX ]
 
-        # return random action
-        if _random: return random.choice(self.action_space)
-
         # epsilon chance to choose random action
         if stats.bernoulli( self.epsilon ).rvs():
             actionIDX =  random.randrange( len(self.action_space) )
         return self.action_space[ actionIDX ]
 
-    def batch_priority( self ):
-        """Implementation of prioritised replay where most recent states take highest priority."""
-        options = list( range(1,len(self.D)+1) )
-        minibatch = []
-        for _ in range( BATCH_SIZE ):
-            # update probs and create new distribution
-            total = len( options ) * (len( options ) + 1) // 2
-            prob_dist = [ i/total for i in range(1, len(options)+1) ]
-
-            choice = np.random.choice( options, 1, p = prob_dist )[0]
-            del options[ options.index(choice) ]
-            minibatch.append( self.D[ choice-1 ] )
-        return minibatch
-
     def experience_replay( self ):
         """Use experience_replay with batch fitting and epsilon decay."""
         if len( self.D ) >= BATCH_SIZE:
-            # batch sample randomly
-            # minibatch = random.sample( self.D, BATCH_SIZE )
-
-            # select batch based on prioritied replay approach
-            minibatch = self.batch_priority()
+            # batch sample size
+            minibatch = random.sample( self.D, BATCH_SIZE )
 
             # experience replay
             train_state = []
@@ -162,16 +140,8 @@ class DDQN_Agent:
                 if done:
                     target[ self.action_space.index(action) ] = reward
                 else:
-                    ############ Double Deep Q Learning Here! #############
-                    # get index of action value network prediction for best action at next state
-                    t = self.model.predict(np.expand_dims(next_state, axis=0))[0]
-                    t_index = np.where(t == np.amax(t))[0][0]
-
-                    # get target network prediction for next state, then use index calc'd above to
-                    # update Q action value network
-                    target_t = self.target_model.predict(np.expand_dims(next_state, axis=0))[0]
-                    target[ self.action_space.index(action) ] = reward + self.gamma * target_t[ t_index ]
-
+                    t = self.target_model.predict(np.expand_dims(next_state, axis=0))[0]
+                    target[ self.action_space.index(action) ] = reward + self.gamma * np.amax(t)
                 train_state.append(state)
                 train_target.append(target)
 
@@ -182,20 +152,15 @@ class DDQN_Agent:
             if self.epsilon > self.epsilon_min:
                 self.epsilon *= self.epsilon_decay
 
-    def save( self, name, data ):
+    def save( self, name, rewards ):
         """Save model and rewards list to appropriate dir, defined at start of code."""
-        # saving model
         if not os.path.exists( MODEL_DIR ):
              os.makedirs( MODEL_DIR )
         self.target_model.save_weights( MODEL_DIR + name + ".h5" )
 
-        # saving results
         if not os.path.exists( REWARD_DIR ):
              os.makedirs( REWARD_DIR )
-        np.savetxt(f"{REWARD_DIR}" + name + ".csv", data, delimiter=",")
-        
-        # plotting results
-        if PLOT_RESULTS: plotResults( f"{REWARD_DIR}" + name + ".csv" )
+        np.savetxt(f"{REWARD_DIR}" + name + ".csv", rewards, delimiter=",")
 
     def load( self, name ):
         """Load previously trained model weights."""
@@ -205,48 +170,29 @@ class DDQN_Agent:
 
 def convert_greyscale( state ):
     """Take input state and convert to greyscale. Check if road is visible in frame."""
-    global on_grass_counter
-
     x, y, _ = state.shape
     cropped = state[ 0:int( 0.85*y ) , 0:x ]
     mask = cv2.inRange( cropped,  np.array([100, 100, 100]),  # dark_grey
                                   np.array([150, 150, 150]))  # light_grey
+    gray = cv2.cvtColor( cropped, cv2.COLOR_BGR2GRAY )
 
-    # Create greyscale then normalise array to reduce complexity for neural network
-    gray = cv2.cvtColor( state, cv2.COLOR_BGR2GRAY )
-    gray = gray.astype(float)
-    gray_normalised = gray / 255.0
+    # returns [ greyscale image, T/F of if road is visible ]
+    # return [ np.expand_dims( gray, axis=2 ), np.any(mask== 255) ]
+    return [ state, np.any(mask== 255), np.nan ]
 
-    # check if car is on grass
-    xc = int(x / 2)
-    grass_mask = cv2.inRange(   state[67:76 , xc-2:xc+2],
-                                np.array([50, 180, 0]),
-                                np.array([150, 255, 255]))
-
-    # If on grass for x5 frames or more then trigger True!
-    on_grass_counter = on_grass_counter+1 if np.any(grass_mask==255) and "on_grass_counter" in globals() else 0
-    if on_grass_counter > STEPS_ON_GRASS:
-        on_grass = True
-        on_grass_counter = 0
-    else: on_grass = False
-
-    # returns [ greyscale image, T/F of if road is visible, is car on grass bool ]
-    return [ np.expand_dims( gray_normalised, axis=2 ), np.any(mask== 255), on_grass ]
-
-
-def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
+def train_agent( agent : DQN_Agent, env : gym.make, episodes : int ):
     """Train agent with experience replay, batch fitting and using a cropped greyscale input image."""
     episode_rewards = []
     for episode in tqdm( range(episodes) ):
         print( f"[INFO]: Starting Episode {episode}" )
         
         state_colour = env.reset() 
-        state_grey, can_see_road, car_on_grass = convert_greyscale( state_colour )
+        state_grey, can_see_road, _ = convert_greyscale( state_colour )
 
         sum_reward = 0
         step = 0
         done = False
-        while not done and sum_reward > MAX_PENALTY and can_see_road:# and not car_on_grass:
+        while not done and sum_reward > MAX_PENALTY and can_see_road:
             # choose action to take next
             action = agent.choose_action( state_grey )
 
@@ -267,15 +213,7 @@ def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
             if repeat_neg_reward >= CONSECUTIVE_NEG_REWARD: break
 
             # convert to greyscale for NN
-            new_state_grey, can_see_road, car_on_grass = convert_greyscale( new_state_colour )
-
-            # penalise car for being on grass
-            # reward = reward -3 if car_on_grass else reward
-
-            # clip reward to 1. Really fast driving would otherwise receive higher reward which
-            # is not good for tight turns. Additionally, skipping frames might produce really big
-            # rewards as well (x1 tile is ~ 3 pnts so clip 6 is max 2 tiles reward per step).
-            reward = np.clip( reward, a_max=1, a_min=-10 )
+            new_state_grey, can_see_road, _ = convert_greyscale( new_state_colour )
 
             # store transition states for experience replay
             agent.store_transition( state_grey, action, reward, new_state_grey, done )
@@ -296,11 +234,12 @@ def train_agent( agent : DDQN_Agent, env : gym.make, episodes : int ):
             agent.update_model()
 
         if episode % SAVE_TRAINING_FREQUENCY == 0:
-            agent.save(f"episode_{episode}", data = episode_rewards)
+            agent.save(f"episode_{episode}", rewards = episode_rewards)
     env.close()
 
 
-def test_agent( agent : DDQN_Agent, env : gym.make, model : str, testnum=10 ):
+
+def test_agent( agent : DQN_Agent, env : gym.make, model : str, testnum=10 ):
     """Test a pretrained model and print out run rewards and total time taken. Quit with ctrl+c."""
     # Load agent model
     agent.load( model )
@@ -362,15 +301,16 @@ def test_agent( agent : DDQN_Agent, env : gym.make, model : str, testnum=10 ):
     return [r_avg, np.nan, t_avg, r_max, r_min, r_std_dev]
 
 
+
 if __name__ == "__main__":
     env = gym.make('CarRacing-v0').env
 
     if not TEST:
         # Train Agent
-        agent = DDQN_Agent()
+        agent = DQN_Agent()
         train_agent( agent, env, episodes = EPISODES )
     
     else:
         # Test Agent
-        agent = DDQN_Agent()
+        agent = DQN_Agent()
         test_agent( agent, env, model = PRETRAINED_PATH, testnum=50 )

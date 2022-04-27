@@ -1,0 +1,2 @@
+# Section Description
+Human driver control code has been taken from [here](https://scientific-python.readthedocs.io/en/latest/notebooks_rst/6_Machine_Learning/04_Exercices/02_Practical_Work/02_RL_2_CarRacing.html) and has been modified thereafter. No configuration is required to run the script and it should work *out of the box*.

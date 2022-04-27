@@ -24,7 +24,7 @@ from tqdm import tqdm
 import time
 
 
-############################## SERVER CONFIGURATION ##################################
+############################## CONFIGURATION ##################################
 # Prevent tensorflow from allocating the all of GPU memory
 # From: https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory
 GPUs = tf.config.experimental.list_physical_devices('GPU')
@@ -44,7 +44,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
+RENDER                  = True
 EPISODES                = 5000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
 SKIP_FRAMES             = 2         # skip n frames between batches
@@ -54,7 +54,7 @@ BATCH_SIZE              = 10        # number for batch fitting
 CONSECUTIVE_NEG_REWARD  = 20        # number of consecutive negative rewards before terminating episode
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DQN2/20220422-164216/episode_975.h5"
+PRETRAINED_PATH         = "DDQN/model/oah33/DQN2/20220422-164216/episode_975.h5"
 TEST                    = False      # true = testing, false = training
 
 

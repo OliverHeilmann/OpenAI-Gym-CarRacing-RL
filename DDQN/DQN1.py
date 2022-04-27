@@ -15,7 +15,7 @@ import datetime, os
 from tqdm import tqdm
 
 
-############################## SERVER CONFIGURATION ##################################
+############################## CONFIGURATION ##################################
 
 # Prevent tensorflow from allocating the all of GPU memory
 # From: https://stackoverflow.com/questions/34199233/how-to-prevent-tensorflow-from-allocating-the-totality-of-a-gpu-memory

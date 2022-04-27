@@ -1,0 +1,2 @@
+# Section Description
+Proportional Integral Derivative (PID) control code has been taken from [here]( https://github.com/KishanKartha/Solving-OpenAI-CarRacing-v0/blob/main/Solving_OpenAI_CarRacing_v0_using_PID_controllers_.ipynb) and has been modified thereafter. No configuration is required to run the script and it should work *out of the box*.
