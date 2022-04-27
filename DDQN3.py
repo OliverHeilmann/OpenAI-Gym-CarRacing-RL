@@ -4,7 +4,7 @@
 #   --> NN input is greyscale 96x96x1
 
 # Environment imports
-import random as rand
+import random
 import numpy as np
 import gym
 import pyvirtualdisplay
@@ -48,7 +48,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = False
+RENDER                  = True
 PLOT_RESULTS            = False     # plotting reward and epsilon vs epsiode (graphically) NOTE: THIS WILL PAUSE TRAINING AT PLOT EPISODE!
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
@@ -61,7 +61,7 @@ STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (st
 REPLAY_BUFFER_MAX_SIZE  = 150000    # threshold memory limit for replay buffer (old version was 10000)
 
 # Testing params
-PRETRAINED_PATH         = "model/oah33/DDQN3_NN/20220424-140943/episode_900.h5"
+PRETRAINED_PATH         = "model/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_300.h5"
 TEST                    = True      # true = testing, false = training
 
 
@@ -115,7 +115,7 @@ class DDQN_Agent:
         self.D.append( (state, action, reward, new_state, done) )
 
 
-    def choose_action( self, state, best=False, random=False):
+    def choose_action( self, state, best=False, _random=False):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
         state = np.expand_dims(state, axis=0)
         actionIDX = np.argmax( self.model.predict(state)[0] )
@@ -124,7 +124,7 @@ class DDQN_Agent:
         if best: return self.action_space[ actionIDX ]
 
         # return random action
-        if random: return rand.choice(self.action_space)
+        if _random: return random.choice(self.action_space)
 
         # epsilon chance to choose random action
         if stats.bernoulli( self.epsilon ).rvs():

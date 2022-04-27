@@ -21,7 +21,18 @@ def plotResults( filepaths ):
     # Create two subplots sharing y axis
     fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
 
+    # plot random agent, human and PID on ax1 and ax3
+    x = [0, 1900]
+    dataDict = {    "Random" : [-24.28] * len(x),
+                    "Human" : [770.75] * len(x),
+                    "PID" : [680.98] * len(x) }
+
     labels = []
+    for key, val in dataDict.items():
+        ax1.plot( x, val, '--', linewidth=1 )
+        ax3.plot( x, val, '--', linewidth=1 )
+        labels.append( key )
+
     for tpath, mpath in filepaths:
         # create a meaningful legend
         labels.append( tpath.split("/")[2] )
@@ -34,7 +45,7 @@ def plotResults( filepaths ):
         sma_reward, ticks = simple_moving_avg( reward )
 
         # ax1.plot(episodes, reward, 'k-', linewidth=1)
-        ax1.plot(episodes, sma_reward, '-', linewidth=2)
+        ax1.plot(episodes, sma_reward, '-', linewidth=1)
         ax1.set(title=f'{ticks} Period Simple Moving Average of Training Reward Against Episode', ylabel='Reward')
 
         ax2.plot(episodes, epsilon, '-', linewidth=1)
@@ -45,8 +56,8 @@ def plotResults( filepaths ):
         ax3.plot(data3["Episode"], data3["Avg Reward"], '-', linewidth=1)
         ax3.set(title=f'Testing Reward Against Episode', xlabel='Episode', ylabel='Avg Reward (50 Runs)')
     
+    ax3.legend( labels, bbox_to_anchor=(0,-1,1,1), loc="lower left", mode="expand", borderaxespad=0, ncol=3)
     fig.tight_layout()  # add padding between figs
-    ax1.legend( labels )
     plt.show()
 
 
@@ -57,7 +68,8 @@ if __name__ == '__main__':
                             # "rewards/oah33/DDQN1/20220422-190009/episode_300.csv",
                             "rewards/oah33/DDQN2/20220423-122311/episode_1900.csv",
                             "rewards/oah33/DDQN2/20220423-170444/episode_1900.csv",
-                            "rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv"
+                            "rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv",
+                            "rewards/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_300.csv"
                         ]
 
     model_rewards = [   "episode_test_runs/oah33/20220425-202418/DQN2/episode_run_rewards.csv",
@@ -65,6 +77,7 @@ if __name__ == '__main__':
                         "episode_test_runs/oah33/20220425-202418/DDQN2_T1/episode_run_rewards.csv",
                         "episode_test_runs/oah33/20220425-202418/DDQN2_T2/episode_run_rewards.csv",
                         "episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
+                        "episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv"
                     ]
     filepaths = [ [training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]
     plotResults( filepaths = filepaths )
