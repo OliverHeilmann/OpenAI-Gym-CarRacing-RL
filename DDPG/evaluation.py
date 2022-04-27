@@ -35,7 +35,7 @@ for ep in range(num_episodes):
     while not done:
         env.render()
 
-        action, train_action, added_noise = agent.get_action(state, add_noise=False)
+        action, train_action = agent.get_action(state, add_noise=False)
 
         # This will make steering much easier
         action /= 4

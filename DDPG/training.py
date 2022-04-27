@@ -29,7 +29,7 @@ def key_release(k, mod):
 num_episodes = 1000
 USERNAME = 'HADI'
 TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-REWARD_DIR              = f"rewards/{USERNAME}/{TIMESTAMP}/"
+REWARD_DIR = f"rewards/{USERNAME}/{TIMESTAMP}/"
 
 SAVE_TRAINING_FREQUENCY = 100
 
@@ -65,7 +65,7 @@ for ep in range(num_episodes):
         if preview:
             env.render()
 
-        action, train_action, added_noise = agent.get_action(state)
+        action, train_action = agent.get_action(state)
 
         # This will make steering much easier
         action /= 4
@@ -84,7 +84,7 @@ for ep in range(num_episodes):
             out_of_track = 0
 
     all_episode_reward.append(episode_reward)
-    data.append([episode_reward, added_noise[0], added_noise[1], epsilon])
+    data.append([episode_reward, epsilon])
 
     if ep % SAVE_TRAINING_FREQUENCY == 0:
         save_result_to_csv(f"episode_{ep}",data,REWARD_DIR)
