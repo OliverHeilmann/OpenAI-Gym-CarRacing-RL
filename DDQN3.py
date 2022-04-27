@@ -4,7 +4,7 @@
 #   --> NN input is greyscale 96x96x1
 
 # Environment imports
-import random
+import random as rand
 import numpy as np
 import gym
 import pyvirtualdisplay
@@ -40,7 +40,7 @@ pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
-MODEL_TYPE              = "DDQN3_NN"
+MODEL_TYPE              = "Random"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
@@ -48,7 +48,7 @@ MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 REWARD_DIR              = f"rewards/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 
 # Training params
-RENDER                  = True
+RENDER                  = False
 PLOT_RESULTS            = False     # plotting reward and epsilon vs epsiode (graphically) NOTE: THIS WILL PAUSE TRAINING AT PLOT EPISODE!
 EPISODES                = 2000      # training episodes
 SAVE_TRAINING_FREQUENCY = 100       # save model every n episodes
@@ -58,6 +58,7 @@ MAX_PENALTY             = -30       # min score before env reset
 BATCH_SIZE              = 20        # number for batch fitting
 CONSECUTIVE_NEG_REWARD  = 25        # number of consecutive negative rewards before terminating episode
 STEPS_ON_GRASS          = 20        # How many steps can car be on grass for (steps == states)
+REPLAY_BUFFER_MAX_SIZE  = 150000    # threshold memory limit for replay buffer (old version was 10000)
 
 # Testing params
 PRETRAINED_PATH         = "model/oah33/DDQN3_NN/20220424-140943/episode_900.h5"
@@ -71,8 +72,7 @@ class DDQN_Agent:
                     (-1, 1, 0.2), (0, 1, 0.2), (1, 1, 0.2), #            Action Space Structure
                     (-1, 1,   0), (0, 1,   0), (1, 1,   0), #           (Steering, Gas, Break)
                     (-1, 0, 0.2), (0, 0, 0.2), (1, 0, 0.2), # Range       -1~1     0~`1`   0~1
-                    (-1, 0,   0), (0, 0,   0), (1, 0,   0)],
-                    memory_size     = 10000,     # threshold memory limit for replay buffer
+                    (-1, 0,   0), (0, 0,   0), (1, 0,   0)],  
                     gamma           = 0.95,      # discount rate
                     epsilon         = 1.0,       # exploration rate
                     epsilon_min     = 0.1,       # used by Atari
@@ -81,7 +81,7 @@ class DDQN_Agent:
                 ):
         
         self.action_space    = action_space
-        self.D               = deque( maxlen=memory_size )
+        self.D               = deque( maxlen=REPLAY_BUFFER_MAX_SIZE )
         self.gamma           = gamma
         self.epsilon         = epsilon
         self.epsilon_min     = epsilon_min
@@ -114,13 +114,17 @@ class DDQN_Agent:
         """Store transition in the replay memory (for replay buffer)."""
         self.D.append( (state, action, reward, new_state, done) )
 
-    def choose_action( self, state, best=False):
+
+    def choose_action( self, state, best=False, random=False):
         """Take state input and use latest target model to make prediction on best next action; choose it!"""
         state = np.expand_dims(state, axis=0)
         actionIDX = np.argmax( self.model.predict(state)[0] )
 
         # return best action if defined
         if best: return self.action_space[ actionIDX ]
+
+        # return random action
+        if random: return rand.choice(self.action_space)
 
         # epsilon chance to choose random action
         if stats.bernoulli( self.epsilon ).rvs():
