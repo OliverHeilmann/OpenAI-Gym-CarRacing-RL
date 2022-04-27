@@ -12,6 +12,6 @@ dep
 *.iml
 *.idea/
 model
-rewards
-test_rewards*
-episode_test_runs
+!rewards
+test_rewards
+!episode_test_runs
