@@ -6,7 +6,6 @@ from tensorflow.keras import layers
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
 
-
 class AgentDDPG:
     def __init__(self, action_space, model_outputs=None, noise_mean=None, noise_std=None):
         # Hyperparameters
@@ -45,9 +44,9 @@ class AgentDDPG:
     def build_actor(self, state_shape, name="Actor"):
         inputs = layers.Input(shape=state_shape)
         x = inputs
-        x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), padding='valid', use_bias=False, activation="relu")(x)
-        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
-        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
+        x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), use_bias=False, activation="relu")(x)
+        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), use_bias=False, activation="relu")(x)
+        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), use_bias=False, activation="relu")(x)
 
         x = layers.Flatten()(x)
         x = layers.Dense(64, activation='relu')(x)
@@ -61,9 +60,9 @@ class AgentDDPG:
     def build_critic(self, state_shape, name="Critic"):
         state_inputs = layers.Input(shape=state_shape)
         x = state_inputs
-        x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), padding='valid', use_bias=False, activation="relu")(x)
-        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
-        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
+        x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), use_bias=False, activation="relu")(x)
+        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), use_bias=False, activation="relu")(x)
+        x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), use_bias=False, activation="relu")(x)
 
         x = layers.Flatten()(x)
         action_inputs = layers.Input(shape=(self.model_action_out,))

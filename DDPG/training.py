@@ -4,13 +4,13 @@ Here a problem and a solution are defined.
 """
 
 import gym
-import datetime, os
+import datetime
+import os
 from pyglet.window import key
 import numpy as np
 
 from utils import *
 from agent_ddpg import *
-
 
 # Show preview
 def key_press(k, mod):
@@ -18,16 +18,14 @@ def key_press(k, mod):
         global preview
         preview = True
 
-
 def key_release(k, mod):
     if k == key.SPACE:
         global preview
         preview = False
 
-
 # Parameters
 num_episodes = 1000
-USERNAME = 'HADI'
+USERNAME = 'SAM'
 TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 REWARD_DIR = f"rewards/{USERNAME}/{TIMESTAMP}/"
 
@@ -51,7 +49,6 @@ agent = AgentDDPG(env.action_space, model_outputs=2, noise_std=noise_std)
 
 # Loop of episodes
 for ep in range(num_episodes):
-
     state = env.reset()
     agent.reset()
     done = False

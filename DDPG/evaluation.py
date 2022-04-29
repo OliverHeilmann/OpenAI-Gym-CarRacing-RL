@@ -10,7 +10,6 @@ import numpy as np
 from utils import *
 from agent_ddpg import *
 
-
 num_episodes = 500
 
 gym.logger.set_level(40)
@@ -22,8 +21,7 @@ env.reset()
 noise_mean = np.array([0.0, -0.83], dtype=np.float32)
 noise_std = np.array([0.0, 4 * 0.02], dtype=np.float32)
 agent = AgentDDPG(env.action_space, model_outputs=2, noise_mean=noise_mean, noise_std=noise_std)
-agent.load_solution('models/')
-
+agent.load_solution()
 
 for ep in range(num_episodes):
     state = env.reset()
@@ -54,4 +52,3 @@ for ep in range(num_episodes):
     all_episode_reward.append(episode_reward)
     average_result = np.array(all_episode_reward[-100:]).mean()
     print('Episode ', ep, ' result:', episode_reward, '..last 100 Average results:', average_result)
-
