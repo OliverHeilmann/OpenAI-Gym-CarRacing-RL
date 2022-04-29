@@ -9,6 +9,7 @@ import numpy as np
 
 from utils import *
 from agent_ddpg import *
+from SamDDPGAgent import SamDDPGAgent
 
 num_episodes = 500
 
@@ -20,7 +21,7 @@ env.reset()
 
 noise_mean = np.array([0.0, -0.83], dtype=np.float32)
 noise_std = np.array([0.0, 4 * 0.02], dtype=np.float32)
-agent = AgentDDPG(env.action_space, model_outputs=2, noise_mean=noise_mean, noise_std=noise_std)
+agent = SamDDPGAgent(env.action_space, model_outputs=2, noise_mean=noise_mean, noise_std=noise_std)
 agent.load_solution()
 
 for ep in range(num_episodes):

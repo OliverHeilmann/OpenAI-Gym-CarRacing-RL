@@ -11,6 +11,7 @@ import numpy as np
 
 from utils import *
 from agent_ddpg import *
+from SamDDPGAgent import SamDDPGAgent
 
 # Show preview
 def key_press(k, mod):
@@ -45,7 +46,7 @@ env.viewer.window.on_key_release = key_release
 
 # Define custom standard deviation for noise
 noise_std = np.array([0.1, 4 * 0.2], dtype=np.float32)
-agent = AgentDDPG(env.action_space, model_outputs=2, noise_std=noise_std)
+agent = SamDDPGAgent(env.action_space, model_outputs=2, noise_std=noise_std)
 
 # Loop of episodes
 for ep in range(num_episodes):
