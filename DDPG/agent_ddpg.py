@@ -5,16 +5,25 @@ from replay_buffer import ReplayBuffer
 from tensorflow.keras import layers
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
+import datetime
+
+TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+train_log_dir = 'logs/' + TIMESTAMP
+summary_writer = tf.summary.create_file_writer(train_log_dir)
+summaries = {}
 
 
 class AgentDDPG:
     def __init__(self, action_space, model_outputs=None, noise_mean=None, noise_std=None):
-        # Hyperparameters
+
         self.gamma = 0.99
-        self.actor_lr = 0.00001
-        self.critic_lr = 0.002
+        self.actor_lr = 1e-5
+        self.critic_lr = 2e-3
         self.tau = 0.005
         self.memory_capacity = 60000
+        self.HIDDEN1_UNITS = 64
+        self.HIDDEN2_UNITS = 32
+        self.summaries = {}
 
         self.need_decode_out = model_outputs is not None
         self.model_action_out = model_outputs if model_outputs else action_space.shape[0]
@@ -31,8 +40,8 @@ class AgentDDPG:
         # Initialize the replay buffer
         self.r_buffer = ReplayBuffer(mem_size=self.memory_capacity)
 
-        self.actor_opt = Adam(self.actor_lr)
-        self.critic_opt = Adam(self.critic_lr)
+        self.actor_optimiser = Adam(self.actor_lr)
+        self.critic_optimiser = Adam(self.critic_lr)
         self.actor = None
         self.critic = None
         self.target_actor = None
@@ -42,15 +51,15 @@ class AgentDDPG:
         self.noise.reset()
 
     # actor network that is going to "play the game"
-    def build_actor(self, state_shape, name="Actor"):
-        inputs = layers.Input(shape=state_shape)
-        x = inputs
-        x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), padding='valid', use_bias=False, activation="relu")(x)
+    def build_actor(self, input_shape, name="Actor"):
+        inputs = layers.Input(shape=input_shape)
+        s = inputs
+        x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), padding='valid', use_bias=False, activation="relu")(s)
         x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
         x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
 
         x = layers.Flatten()(x)
-        x = layers.Dense(64, activation='relu')(x)
+        x = layers.Dense(self.HIDDEN1_UNITS, activation='relu')(x)
 
         y = layers.Dense(self.model_action_out, activation='tanh')(x)
 
@@ -58,19 +67,20 @@ class AgentDDPG:
         model.summary()
         return model
 
-    def build_critic(self, state_shape, name="Critic"):
-        state_inputs = layers.Input(shape=state_shape)
+    def build_critic(self, input_shape, name="Critic"):
+        state_inputs = layers.Input(shape=input_shape)
         x = state_inputs
         x = layers.Conv2D(16, kernel_size=(5, 5), strides=(4, 4), padding='valid', use_bias=False, activation="relu")(x)
         x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
         x = layers.Conv2D(32, kernel_size=(3, 3), strides=(3, 3), padding='valid', use_bias=False, activation="relu")(x)
 
         x = layers.Flatten()(x)
+        x = layers.Dense(self.HIDDEN1_UNITS, activation='relu')(x)
         action_inputs = layers.Input(shape=(self.model_action_out,))
         x = layers.concatenate([x, action_inputs])
 
-        x = layers.Dense(64, activation='relu')(x)
-        x = layers.Dense(32, activation='relu')(x)
+        x = layers.Dense(self.HIDDEN1_UNITS, activation='relu')(x)
+        x = layers.Dense(self.HIDDEN2_UNITS, activation='relu')(x)
         y = layers.Dense(1)(x)
 
         model = Model(inputs=[state_inputs, action_inputs], outputs=y, name=name)
@@ -90,7 +100,7 @@ class AgentDDPG:
         self.target_critic.set_weights(self.critic.get_weights())
 
     def get_action(self, state, add_noise=True):
-        prep_state = self.preprocess(state)
+        prep_state = preprocess(state)
         if self.actor is None:
             self.init_networks(prep_state.shape)
 
@@ -116,40 +126,10 @@ class AgentDDPG:
     def decode_model_output(self, model_out):
         return np.array([model_out[0], model_out[1].clip(0, 1), -model_out[1].clip(-1, 0)])
 
-    def preprocess(self, img, greyscale=False):
-        img = img.copy()
-        # Remove numbers and enlarge speed bar
-        for i in range(88, 93 + 1):
-            img[i, 0:12, :] = img[i, 12, :]
-
-        # Unify grass color
-        replace_color(img, original=(102, 229, 102), new_value=(102, 204, 102))
-
-        if greyscale:
-            img = img.mean(axis=2)
-            img = np.expand_dims(img, 2)
-
-        # Make car black
-        car_color = 68.0
-        car_area = img[67:77, 42:53]
-        car_area[car_area == car_color] = 0
-
-        # Scale from 0 to 1
-        img = img / img.max()
-
-        # Unify track color
-        img[(img > 0.411) & (img < 0.412)] = 0.4
-        img[(img > 0.419) & (img < 0.420)] = 0.4
-
-        # Change color of kerbs
-        game_screen = img[0:83, :]
-        game_screen[game_screen == 1] = 0.80
-        return img
-
     def learn(self, state, train_action, reward, new_state):
         # save the transition back to the replay buffer
-        prep_state = self.preprocess(state)
-        prep_new_state = self.preprocess(new_state)
+        prep_state = preprocess(state)
+        prep_new_state = preprocess(new_state)
         self.r_buffer.save_move(prep_state, train_action, reward, prep_new_state)
 
         # Sample batch from buffer and convert them to tensors
@@ -177,7 +157,7 @@ class AgentDDPG:
             critic_loss = tf.math.reduce_mean(tf.square(y - self.critic([state, action], training=True)))
 
         critic_gradients = tape.gradient(critic_loss, self.critic.trainable_variables)
-        self.critic_opt.apply_gradients(zip(critic_gradients, self.critic.trainable_variables))
+        self.critic_optimiser.apply_gradients(zip(critic_gradients, self.critic.trainable_variables))
 
         # Update actor
         with tf.GradientTape() as tape:
@@ -185,20 +165,20 @@ class AgentDDPG:
             actor_loss = -tf.math.reduce_mean(critic_out)  # Need to maximize
 
         actor_gradients = tape.gradient(actor_loss, self.actor.trainable_variables)
-        self.actor_opt.apply_gradients(zip(actor_gradients, self.actor.trainable_variables))
+        self.actor_optimiser.apply_gradients(zip(actor_gradients, self.actor.trainable_variables))
 
     @tf.function
     def update_target_network(self, target_weights, new_weights):
         for t, n in zip(target_weights, new_weights):
             t.assign((1 - self.tau) * t + self.tau * n)
 
-    def save_solution(self, path='models/'):
-        self.actor.save(path + 'actor.h5')
-        self.critic.save(path + 'critic.h5')
-        self.target_actor.save(path + 'target_actor.h5')
-        self.target_critic.save(path + 'target_critic.h5')
+    def save_model(self, path='models/', name=""):
+        self.actor.save(path + 'actor.h5' + name)
+        self.critic.save(path + 'critic.h5' + name)
+        self.target_actor.save(path + 'target_actor.h5' + name)
+        self.target_critic.save(path + 'target_critic.h5' + name)
 
-    def load_solution(self, path='models/'):
+    def load_model(self, path='best_models/'):
         self.actor = tf.keras.models.load_model(path + 'actor.h5')
         self.critic = tf.keras.models.load_model(path + 'critic.h5')
         self.target_actor = tf.keras.models.load_model(path + 'target_actor.h5')

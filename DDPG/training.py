@@ -4,7 +4,7 @@ Here a problem and a solution are defined.
 """
 
 import gym
-import datetime, os
+import datetime
 from pyglet.window import key
 import numpy as np
 
@@ -26,10 +26,10 @@ def key_release(k, mod):
 
 
 # Parameters
-num_episodes = 1000
-USERNAME = 'HADI'
+num_episodes = 1500
+
 TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-REWARD_DIR = f"rewards/{USERNAME}/{TIMESTAMP}/"
+REWARD_DIR = f"rewards/{TIMESTAMP}/"
 
 SAVE_TRAINING_FREQUENCY = 100
 
@@ -44,6 +44,8 @@ env = gym.make('CarRacing-v0')
 env.reset()
 env.viewer.window.on_key_press = key_press
 env.viewer.window.on_key_release = key_release
+
+train_log_dir = 'logs/' + TIMESTAMP
 
 # Define custom standard deviation for noise
 noise_std = np.array([0.1, 4 * 0.2], dtype=np.float32)
@@ -60,6 +62,7 @@ for ep in range(num_episodes):
     # added epsilon variable to match the data saved with other models
     epsilon = np.nan
     added_noise = 0
+
     # One-step-loop
     while not done:
         if preview:
@@ -70,6 +73,7 @@ for ep in range(num_episodes):
         # This will make steering much easier
         action /= 4
         new_state, reward, done, info = env.step(action)
+        # reward = np.clip(reward, a_max=1, a_min=-10)
 
         # Models action output has a different shape for this problem
         agent.learn(state, train_action, reward, new_state)
@@ -87,14 +91,15 @@ for ep in range(num_episodes):
     data.append([episode_reward, epsilon])
 
     if ep % SAVE_TRAINING_FREQUENCY == 0:
-        save_result_to_csv(f"episode_{ep}",data,REWARD_DIR)
+        save_result_to_csv(f"episode_{ep}", data, REWARD_DIR)
+        agent.save_model(name="_" + str(ep))
 
     average_result = np.array(all_episode_reward[-100:]).mean()
     print('Episode ', ep, ' result:', episode_reward, '..last 100 Average results:', average_result)
 
     if episode_reward > best_result:
         print('Saving this model because it is the best one so far')
-        agent.save_solution()
+        agent.save_model(path='best_models/')
         best_result = episode_reward
 
 episode_indices = [i + 1 for i in range(num_episodes)]

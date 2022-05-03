@@ -11,29 +11,48 @@ class NoiseGenerator:
         self.mean = mean
         self.std_dev = std_dev
 
-        if mean.shape != std_dev.shape:
-            raise ValueError('Mean shape: {} and std_dev shape: {} should be the same!'.format(
-                mean.shape, std_dev.shape))
-
-        # This shape will be generated
-        self.x_shape = mean.shape
         self.x = None
 
         self.reset()
 
     def reset(self):
-        # Reinitialize generator
-        self.x = np.zeros_like(self.x_shape)
+        self.x = np.zeros_like(self.mean.shape)
 
     def generate(self):
-        # The result is based on the old value
-        # The second segment will keep values near a mean value
-        # It uses normal distribution multiplied by a standard deviation
         self.x = (self.x
                   + self.theta * (self.mean - self.x) * self.dt
-                  + self.std_dev * np.sqrt(self.dt) * np.random.normal(size=self.x_shape))
+                  + self.std_dev * np.sqrt(self.dt) * np.random.normal(size=self.mean.shape))
 
         return self.x
+
+
+def preprocess(img, greyscale=False):
+    img = img.copy()
+    # Remove numbers and enlarge speed bar
+    for i in range(88, 93 + 1):
+        img[i, 0:12, :] = img[i, 12, :]
+
+    # Unify grass color
+    replace_color(img, original=(102, 229, 102), new_value=(102, 204, 102))
+
+    if greyscale:
+        img = img.mean(axis=2)
+        img = np.expand_dims(img, 2)
+
+    # Make car black
+    car_color = 68.0
+    car_area = img[67:77, 42:53]
+    car_area[car_area == car_color] = 0
+
+    # Scale from 0 to 1
+    img = img / img.max()
+    # Unify track color
+    img[(img > 0.411) & (img < 0.412)] = 0.4
+    img[(img > 0.419) & (img < 0.420)] = 0.4
+    # Change color of kerbs
+    game_screen = img[0:83, :]
+    game_screen[game_screen == 1] = 0.80
+    return img
 
 
 def prepend_tuple(new_dim, some_shape):
