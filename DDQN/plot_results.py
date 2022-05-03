@@ -33,9 +33,9 @@ def plotResults( filepaths ):
         ax3.plot( x, val, '--', linewidth=1 )
         labels.append( key )
 
-    for tpath, mpath in filepaths:
+    for label, tpath, mpath in filepaths:
         # create a meaningful legend
-        labels.append( tpath.split("/")[3] )
+        labels.append( label )
 
         # read data and plot as SMA
         data12 = pd.read_csv(tpath, names=["Reward", "Epsilon", "Run Time"])  
@@ -69,6 +69,13 @@ def plotResults( filepaths ):
 
 if __name__ == '__main__':
 
+    labels =    ["DQN",
+                "DDQN Termination Type 1",
+                "DDQN Termination Type 2",
+                "DDQN Larger Neural Network",
+                "DDPG"
+                ]
+
     # MUST BE SAME LENGTH!
     training_rewards = [   "DDQN/rewards/oah33/DQN2/20220422-164216/episode_1200.csv",
                             # "DDQN/rewards/oah33/DDQN1/20220422-190009/episode_300.csv",
@@ -87,5 +94,5 @@ if __name__ == '__main__':
                         # "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
                         "DDPG/test_rewards/20220503-092623/episode_49.csv"
                     ]
-    filepaths = [ [training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]
+    filepaths = [ [labels[i], training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]
     plotResults( filepaths = filepaths )

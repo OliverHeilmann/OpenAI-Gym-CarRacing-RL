@@ -8,8 +8,12 @@ WIP
 | Human                                                                                             |             770.75              |824.09|683.29|       45.28        | 
 | Proportional, Integral, Derivative (PID) Control                                                  |             680.98              |805.45|446.62|       90.22        | 
 | DQN with Experience Replay and Fixed Target Network                                               |             385.06              |841.28| 43.28|       251.37       | 
-| Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping (DDQN1)   |             730.88              |870.65|101.22|       216.13       | 
-| Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping* (DDQN2)  |             899.49              |919.69|817.27|       231.93       | 
+| Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping           |             730.88              |870.65|101.22|       216.13       | 
+| Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping*          |             899.49              |919.69|817.27|       231.93       |
+| DDPG                                                                                              |             620.86              |912.20|798.38|       288.89       | 
+
+*An extra dense layer to the neural network and modified episode termination approach.
+
 
 ![DQN, DDQN](/imgs/ddqn_results.png "Discrete Action Space RL Approaches")
 
