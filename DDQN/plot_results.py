@@ -35,7 +35,7 @@ def plotResults( filepaths ):
 
     for tpath, mpath in filepaths:
         # create a meaningful legend
-        labels.append( tpath.split("/")[2] )
+        labels.append( tpath.split("/")[3] )
 
         # read data and plot as SMA
         data12 = pd.read_csv(tpath, names=["Reward", "Epsilon", "Run Time"])  
@@ -52,13 +52,19 @@ def plotResults( filepaths ):
         ax2.set(title=f'Epsilon Against Episode', ylabel='Epsilon')
 
         # now get data for plot 3s
-        data3 = pd.read_csv(mpath, names=["Episode", "Avg Reward", "Epsilon", "Avg Time", "Max", "Min", "Std Dev"])  
-        ax3.plot(data3["Episode"], data3["Avg Reward"], '-', linewidth=1)
-        ax3.set(title=f'Testing Reward Against Episode', xlabel='Episode', ylabel='Avg Reward (50 Runs)')
+        if [tpath, mpath] != filepaths[-1]:
+            data3 = pd.read_csv(mpath, names=["Episode", "Avg Reward", "Epsilon", "Avg Time", "Max", "Min", "Std Dev"])  
+            ax3.plot(data3["Episode"], data3["Avg Reward"], '-', linewidth=1)
+        else:
+            data3 = pd.read_csv(mpath, names=["Avg Reward", "Epsilon", "Avg Time", "None", "Max", "Min", "Std Dev"])
+            ax3.plot(list(range(len(data3["Avg Reward"]))), data3["Avg Reward"], '-', linewidth=1)
     
+    ax3.set(title=f'Testing Reward Against Episode', xlabel='Training Episode', ylabel='Avg Reward (50 Runs)')
     ax3.legend( labels, bbox_to_anchor=(0,-1,1,1), loc="lower left", mode="expand", borderaxespad=0, ncol=3)
+    fig.set_size_inches(7,10)
     fig.tight_layout()  # add padding between figs
-    plt.show()
+    # plt.show()
+    plt.savefig('imgs/ddqn_results.png')
 
 
 if __name__ == '__main__':
@@ -69,7 +75,8 @@ if __name__ == '__main__':
                             "DDQN/rewards/oah33/DDQN2/20220423-122311/episode_1900.csv",
                             "DDQN/rewards/oah33/DDQN2/20220423-170444/episode_1900.csv",
                             "DDQN/rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv",
-                            # "DDQN/rewards/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_500.csv"
+                            # "DDQN/rewards/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_500.csv",
+                            "DDPG/rewards/20220502-203130/episode_1400.csv",
                         ]
 
     model_rewards = [   "DDQN/episode_test_runs/oah33/20220425-202418/DQN2/episode_run_rewards.csv",
@@ -77,7 +84,8 @@ if __name__ == '__main__':
                         "DDQN/episode_test_runs/oah33/20220425-202418/DDQN2_T1/episode_run_rewards.csv",
                         "DDQN/episode_test_runs/oah33/20220425-202418/DDQN2_T2/episode_run_rewards.csv",
                         "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
-                        # "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv"
+                        # "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
+                        "DDPG/test_rewards/20220503-092623/episode_49.csv"
                     ]
     filepaths = [ [training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]
     plotResults( filepaths = filepaths )
