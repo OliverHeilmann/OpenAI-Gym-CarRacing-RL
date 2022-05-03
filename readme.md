@@ -10,7 +10,7 @@ WIP
 | DQN with Experience Replay and Fixed Target Network                                               |             385.06              |841.28| 43.28|       251.37       | 
 | Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping           |             730.88              |870.65|101.22|       216.13       | 
 | Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping*          |             899.49              |919.69|817.27|       231.93       |
-| DDPG                                                                                              |             620.86              |912.20|798.38|       288.89       | 
+| DDPG                                                                                              |             620.86              |912.20| 79.84|       288.89       | 
 
 *An extra dense layer to the neural network and modified episode termination approach.
 
