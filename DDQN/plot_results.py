@@ -72,7 +72,7 @@ if __name__ == '__main__':
     labels =    ["DQN",
                 "DDQN Termination Type 1",
                 "DDQN Termination Type 2",
-                "DDQN Larger Neural Network",
+                "Prioritised DDQN",
                 "DDPG"
                 ]
 
