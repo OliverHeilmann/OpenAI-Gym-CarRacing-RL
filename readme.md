@@ -16,7 +16,7 @@ WIP
 *An extra dense layer to the neural network and modified episode termination approach.
 
 
-![DQN, DDQN](/imgs/ddqn_results.png "Discrete Action Space RL Approaches")
+![DQN, DDQN](/imgs/results.png "Discrete Action Space RL Approaches")
 
 
 *One dense layer more and more _"lenient episode termination"_ (meaning the car can drive on the grass for longer before terminating episode)
