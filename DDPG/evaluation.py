@@ -71,7 +71,7 @@ for i in range(0, 1500, 100):
     t_avg = np.mean(rt)
 
     avg_runs.append([i, r_avg, np.nan, t_avg, r_max, r_min, r_std_dev])
-    save_result_to_csv(f"episode_{ep}", avg_runs, TEST_REWARD_DIR)
+    save_result_to_csv(f"run2", avg_runs, TEST_REWARD_DIR)
     print(f"[INFO]: Runs {num_episodes} | Avg Run Reward: ", "%0.2f" % r_avg, "| Avg Time:", "%0.2fs" % t_avg,
           f" | Max: {r_max} | Min: {r_min} | Std Dev: {r_std_dev}")
 

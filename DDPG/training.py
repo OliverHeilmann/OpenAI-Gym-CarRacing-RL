@@ -73,7 +73,7 @@ for ep in range(num_episodes):
         # This will make steering much easier
         action /= 4
         new_state, reward, done, info = env.step(action)
-        # reward = np.clip(reward, a_max=1, a_min=-10)
+        reward = np.clip(reward, a_max=1, a_min=-10)
 
         # Models action output has a different shape for this problem
         agent.learn(state, train_action, reward, new_state)
@@ -103,4 +103,4 @@ for ep in range(num_episodes):
         best_result = episode_reward
 
 episode_indices = [i + 1 for i in range(num_episodes)]
-plot_learning_curve(episode_indices, all_episode_reward, 'ddpg.png')
+plot_learning_curve(episode_indices, all_episode_reward, 'ddpg2.png')
