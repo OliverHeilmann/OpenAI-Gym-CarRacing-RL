@@ -1,16 +1,6 @@
 # Code Description
 WIP
 
-* Included a large config section to allow for iterative testing and better visibility of parameters
-* Overly large number of training episodes but saving model periodically so we can choose 'best of bunch'
-* Skip frames included: Frame skipping is where an action is chosen and taken n many times in a row. The negative rewards are collected but the transition states are not; this incentivises a sense of longer term "thinking" through larger (in magnitude) rewards. We found that the car would learn very slowly and often drive slowly without frame skipping. We think that this is a very important feature here as the physics of the environment was such that it made sense i.e. vehicle momentum, velocity etc were attributes carried through states. Frame skipping allowed for more focussed learning around this notion.
-* Target network updates every x5 episodes. Each run would have a finite number of time that it could run for (by either exploring all areas or early termination). Measuring target updates in terms of steps would increase the variability of target updates so, by setting it per episode, there was a better control over the frequency of target updates. Values were tested iteratively and some example values were taken from online sources as a baseline.
-* Max penalty, consecutive_neg_reward, steps_on_grass: These two parameters governed how the episode would terminate during training. To ensure that unnecessary states (i.e. those where no road was visible and car on grass) wouldn't saturate the network, we pre-emptively terminated episodes which were likely to provide little benefit to training. This, obviously had significant effect on the training reward curves... but often had beneficial effects to the testing performance.
-* replay_buffer_max_size: To ensure learning would happen across many episodes, and to not overfit to specific data, RB was included. Max array size was set to very large so that this adverse affect was less likely to occur but this increased training time significantly (as expected).
-* Action space discretisation: obv action space was continuous, we had to choose a set of actions so we consulted other sources for baseline approaches. We also tried larger numbers of action space but this required an increases Neural Network size to account for the added complexity in action space. Overall, we decided to keep action space cocnsistent across hyperparameter tests to constrain the complexity/ make it easier to identify which parameters did what.
-* Prioritised/ batch priority: As per the Rainbow paper, a batch priority was introduced where a higher probability of selection was given to recent states, and lower priority to older states. This stabalised the convergance of our training performance.
-
-
 
 # Testing Results
 | Method                                                                                            | Average Reward (across 50 runs) | Max  | Min  | Standard Deviation |
