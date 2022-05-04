@@ -13,7 +13,8 @@ This repository contains code for various reinforcement learning algorithms such
 | DQN with Experience Replay and Fixed Target Network                                               |             385.06              |841.28| 43.28|       251.37       | 
 | Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping           |             730.88              |870.65|101.22|       216.13       | 
 | Prioritised Double DQN with Experience Replay, Fixed Target Network and Reward Clipping*          |             899.49              |919.69|817.27|       231.93       |
-| DDPG                                                                                              |             620.86              |912.20| 79.84|       288.89       | 
+| DDPG                                                                                              |             253.12              |507.64| 78.65|        98.25       | 
+| DDPG Reward Clipping                                                                              |             620.60              |835.48|187.61|       197.00       | 
 
 *An extra dense layer to the neural network and modified episode termination approach.
 
