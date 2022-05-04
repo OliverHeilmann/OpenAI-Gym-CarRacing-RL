@@ -19,7 +19,7 @@ def simple_moving_avg( data, ticks=75 ):
 def plotResults( filepaths ):
     """Plot results from csv files which were saved from training."""
     # Create two subplots sharing y axis
-    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True)
+    fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True, gridspec_kw={'height_ratios': [2, 1, 2]})
 
     # plot random agent, human and PID on ax1 and ax3
     x = [0, 1900]
@@ -61,7 +61,7 @@ def plotResults( filepaths ):
     
     ax3.set(title=f'Testing Reward Against Episode', xlabel='Training Episode', ylabel='Avg Reward (50 Runs)')
     ax3.legend( labels, bbox_to_anchor=(0,-1,1,1), loc="lower left", mode="expand", borderaxespad=0, ncol=3)
-    fig.set_size_inches(7,10)
+    fig.set_size_inches(7,12)
     fig.tight_layout()  # add padding between figs
     # plt.show()
     plt.savefig('imgs/results.png')
