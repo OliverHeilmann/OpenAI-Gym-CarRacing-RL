@@ -1,5 +1,7 @@
-# Code Description
-WIP
+# Overview
+This repository contains code for various reinforcement learning algorithms such as DQN, Double DQN and DDPG. Click on each of their sub-folders to find out specific information on how they each work. See below for an overview on the project results.
+
+[![Watch the video](imgs/still.png)](https://www.youtube.com/watch?v=eQtx2ZZtuTw)
 
 
 # Testing Results
@@ -50,7 +52,7 @@ pyvirtualdisplay.Display(visible=0, size=(1400, 900)).start()
 While training our model, it is good practice to save it periodically so that training can be continued if the process is interrupted before completion. Add these lines and modify the arguments as necessary.
 ```python
 # Where are models saved? How frequently e.g. every x1 episode?
-USERNAME                = "oah33"
+USERNAME                = "username"
 MODEL_TYPE              = "DQN"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 SAVE_TRAINING_FREQUENCY = 1
@@ -86,10 +88,10 @@ self.model.fit(state,action_vals,epochs=1,verbose=0, callbacks=[tensorboard_call
 *NOTE: For examples of the implementation, look at the [DQN.py](DQN.py) and [tensorboard_test.py](tensorboard_test.py)*
 
 ## In Terminal (Connecting to Server)
-Login to the servers using your own credentials. If at any point you need help, go to [HEX](https://hex.cs.bath.ac.uk/) for support, it's a great source!
+Login to the servers using your own credentials. If at any point you need help, go to [HEX](https://hex.cs.bath.ac.uk/) for support, it's a great source but you need to be a University of Bath student to access it!
 ```text
 <!-- login to server as normal via terminal-->
-ssh oah33@garlick.cs.bath.ac.uk
+ssh username@location
 ```
 
 Only need to do this the first time... We build the Docker container because the server GPUs won't work without it.
@@ -121,7 +123,7 @@ A lot to unpack in this command, lets break it down:
 In a new terminal, connect with the server and daisy chain the ports from the Docker container (80) to the server (10000) and then to localhost/ your machine (8080). This way, you can access the information being generated through your web browser.
 ```text
 <!-- in new terminal, connect to port from server to localhost -->
-ssh -L 8080:localhost:10000 oah33@garlick.cs.bath.ac.uk
+ssh -L 8080:localhost:10000 username@location
 ```
 
 ## On Host Machine
