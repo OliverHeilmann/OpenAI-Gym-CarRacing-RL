@@ -160,3 +160,4 @@ nvidia-smi
 
 # Notes
 1) To select interpreter in VS Code--> cmd+shift+p, Python. Select Interpreter, CHOOSE PREFERENCE
+2) To select interpreter in PyCharm: Open Settings (Ctrl+Alt+S) -> Project: <project_name> -> Python Interpreter

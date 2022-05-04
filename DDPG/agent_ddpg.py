@@ -12,7 +12,6 @@ train_log_dir = 'logs/' + TIMESTAMP
 summary_writer = tf.summary.create_file_writer(train_log_dir)
 summaries = {}
 
-
 class AgentDDPG:
     def __init__(self, action_space, model_outputs=None, noise_mean=None, noise_std=None):
 
@@ -109,10 +108,8 @@ class AgentDDPG:
         actor_output = self.actor(tensor_state).numpy()
 
         # if asked, add noise to the action taken
-        if add_noise:
-            actor_output = actor_output[0] + self.noise.generate()
-        else:
-            actor_output = actor_output[0]
+        actor_output = actor_output[0]
+        if add_noise: actor_output += self.noise.generate()
 
         if self.need_decode_out:
             env_action = self.decode_model_output(actor_output)
