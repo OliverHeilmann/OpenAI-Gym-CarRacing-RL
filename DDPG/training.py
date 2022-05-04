@@ -92,7 +92,7 @@ for ep in range(num_episodes):
 
     if ep % SAVE_TRAINING_FREQUENCY == 0:
         save_result_to_csv(f"episode_{ep}", data, REWARD_DIR)
-        agent.save_model(name="_" + str(ep))
+        agent.save_model(num=str(ep) + '_')
 
     average_result = np.array(all_episode_reward[-100:]).mean()
     print('Episode ', ep, ' result:', episode_reward, '..last 100 Average results:', average_result)
