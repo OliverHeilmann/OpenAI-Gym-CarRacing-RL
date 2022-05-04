@@ -64,7 +64,7 @@ def plotResults( filepaths ):
     fig.set_size_inches(7,10)
     fig.tight_layout()  # add padding between figs
     # plt.show()
-    plt.savefig('imgs/ddqn_results.png')
+    plt.savefig('imgs/results.png')
 
 
 if __name__ == '__main__':
@@ -73,6 +73,7 @@ if __name__ == '__main__':
                 "DDQN Termination Type 1",
                 "DDQN Termination Type 2",
                 "Prioritised DDQN",
+                # "Prioritised DDQN Big R.B.",
                 "DDPG"
                 ]
 
@@ -83,6 +84,7 @@ if __name__ == '__main__':
                             "DDQN/rewards/oah33/DDQN2/20220423-170444/episode_1900.csv",
                             "DDQN/rewards/oah33/DDQN3_NN/20220424-140943/episode_1900.csv",
                             # "DDQN/rewards/oah33/DDQN3_NN_BigBuffer/20220427-115058/episode_500.csv",
+                            # "DDQN/rewards/oah33/DDQN3_NN_BigBuffer/20220424-140943/episode_1900.csv",
                             "DDPG/rewards/20220502-203130/episode_1400.csv",
                         ]
 
@@ -92,6 +94,7 @@ if __name__ == '__main__':
                         "DDQN/episode_test_runs/oah33/20220425-202418/DDQN2_T2/episode_run_rewards.csv",
                         "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
                         # "DDQN/episode_test_runs/oah33/20220425-202418/DDQN3_NN/episode_run_rewards.csv",
+                        # "DDQN/episode_test_runs/oah33/20220504-104929/DDQN3_BigRB/episode_run_rewards.csv",
                         "DDPG/test_rewards/20220503-092623/episode_49.csv"
                     ]
     filepaths = [ [labels[i], training_rewards[i], model_rewards[i]] for i in range(len(training_rewards)) ]

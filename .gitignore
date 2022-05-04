@@ -12,7 +12,7 @@ dep
 *.iml
 *.idea/
 model
-!rewards
+rewards
 test_rewards
-!episode_test_runs
+episode_test_runs
 .*

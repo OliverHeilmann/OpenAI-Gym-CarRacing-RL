@@ -94,10 +94,11 @@ if __name__ == "__main__":
     from DDQN3 import convert_greyscale as DDQN3_convert_greyscale
 
     agents_functs_folders = [   ["DQN2", DQN_Agent2, DQN2_convert_greyscale, "DDQN/model/oah33/DQN2/20220422-164216"],
-                                # ["DDQN1", DDQN_Agent1, DDQN1_convert_greyscale, "DDQN/model/oah33/DDQN1/20220422-190009"],
+                                ["DDQN1", DDQN_Agent1, DDQN1_convert_greyscale, "DDQN/model/oah33/DDQN1/20220422-190009"],
                                 ["DDQN2_T1", DDQN_Agent2, DDQN2_convert_greyscale, "DDQN/model/oah33/DDQN2/20220423-122311"],
                                 ["DDQN2_T2", DDQN_Agent2, DDQN2_convert_greyscale, "DDQN/model/oah33/DDQN2/20220423-170444"],
                                 ["DDQN3_NN", DDQN_Agent3, DDQN3_convert_greyscale, "DDQN/model/oah33/DDQN3_NN/20220424-140943"],
+                                # ["DDQN3_BigRB", DDQN_Agent3, DDQN3_convert_greyscale, "DDQN/model/oah33/DDQN3_NN_BigBuffer/20220424-140943"],                 
                             ]
 
     env = gym.make('CarRacing-v0').env
@@ -113,7 +114,7 @@ if __name__ == "__main__":
                                                                     togray=grayscale_funct,
                                                                     env=env,
                                                                     model = folder + "/" + curr_model,
-                                                                    testnum=50 
+                                                                    testnum=3 
                                                                  )
 
             # append results to array
