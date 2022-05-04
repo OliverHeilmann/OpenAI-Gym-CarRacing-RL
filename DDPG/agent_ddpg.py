@@ -19,7 +19,7 @@ class AgentDDPG:
         self.actor_lr = 1e-5
         self.critic_lr = 2e-3
         self.tau = 0.005
-        self.memory_capacity = 60000
+        self.memory_capacity = 100000
         self.HIDDEN1_UNITS = 64
         self.HIDDEN2_UNITS = 32
         self.summaries = {}
@@ -169,14 +169,14 @@ class AgentDDPG:
         for t, n in zip(target_weights, new_weights):
             t.assign((1 - self.tau) * t + self.tau * n)
 
-    def save_model(self, path='models/', name=""):
-        self.actor.save(path + 'actor.h5' + name)
-        self.critic.save(path + 'critic.h5' + name)
-        self.target_actor.save(path + 'target_actor.h5' + name)
-        self.target_critic.save(path + 'target_critic.h5' + name)
+    def save_model(self, path='models/', num=""):
+        self.actor.save(path + num + 'actor.h5')
+        self.critic.save(path + num + 'critic.h5')
+        self.target_actor.save(path + num + 'target_actor.h5')
+        self.target_critic.save(path + num + 'target_critic.h5')
 
-    def load_model(self, path='best_models/'):
-        self.actor = tf.keras.models.load_model(path + 'actor.h5')
-        self.critic = tf.keras.models.load_model(path + 'critic.h5')
-        self.target_actor = tf.keras.models.load_model(path + 'target_actor.h5')
-        self.target_critic = tf.keras.models.load_model(path + 'target_critic.h5')
+    def load_model(self, path='best_models/', num="", compiles=True):
+        self.actor = tf.keras.models.load_model(path + num + 'actor.h5', compile=compiles)
+        self.critic = tf.keras.models.load_model(path + num + 'critic.h5', compile=compiles)
+        self.target_actor = tf.keras.models.load_model(path + num + 'target_actor.h5', compile=compiles)
+        self.target_critic = tf.keras.models.load_model(path + num + 'target_critic.h5', compile=compiles)
