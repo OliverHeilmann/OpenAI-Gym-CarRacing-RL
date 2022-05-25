@@ -20,8 +20,8 @@ Has been added to the script. If you would like to see the environment whilst it
 Further tunning can be done by configuring the following parameters : 
 
 ``` python
-USERNAME                = "jo642"
-MODEL_TYPE              = "DNQ2_10K"
+USERNAME                = "STUDENT_USERNAME"
+MODEL_TYPE              = "MODEL_NAME"
 TIMESTAMP               = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 MODEL_DIR               = f"./model/{USERNAME}/{MODEL_TYPE}/{TIMESTAMP}/"
 

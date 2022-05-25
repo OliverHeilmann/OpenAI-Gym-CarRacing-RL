@@ -87,4 +87,5 @@ model_rewards = [   "DDQN/episode_test_runs/oah33/20220425-202418/DQN2/episode_r
 
 The output may look something like the below:
 
-![DQN, DDQN](/imgs/ddqn_results.png "Discrete Action Space RL Approaches")
+![DQN, DDQN](/imgs/results.png "Discrete Action Space RL Approaches")
+
