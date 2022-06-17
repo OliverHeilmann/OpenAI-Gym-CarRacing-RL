@@ -36,7 +36,7 @@ for gpu in GPUs:
     tf.config.experimental.set_memory_growth( gpu, True )   # set memory growth option
 
 # Creates a virtual display for OpenAI gym ( to support running from headless servers)
-pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
+# pyvirtualdisplay.Display( visible=0, size=(720, 480) ).start()
 
 # Where are models saved? How frequently e.g. every x1 episode?
 USERNAME                = "oah33"
