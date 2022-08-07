@@ -1,6 +1,7 @@
 # Overview
 This repository contains code for various reinforcement learning algorithms such as DQN, Double DQN and DDPG. Click on each of their sub-folders to find out specific information on how they each work. See below for an overview on the project results.
 
+## Click Image Below For YouTube Video!
 [![Watch the video](imgs/still.png)](https://www.youtube.com/watch?v=eQtx2ZZtuTw)
 
 
